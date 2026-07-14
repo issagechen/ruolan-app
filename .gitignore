@@ -27,9 +27,10 @@ ios/Runner/GeneratedPluginRegistrant.*
 # 模型与巨型 vendored 源码树（仓库体积控制）
 # - 本地 GGUF 模型文件一律不入库（运行时放置）
 *.gguf
-# - llama.cpp 是 vendored 的 190MB 外部源码树，不进仓库。
-#   C++ 语法检查由 scripts/check_native_cpp.sh 在 CI 中按需浅克隆固定提交完成。
-android/app/src/main/cpp/llama.cpp/
+# - llama.cpp 作为 git submodule（固定提交 33ca0dc，与预编译 .so 同源），
+#   仅以 gitlink 形式入库，源码不重复存储；C++ 语法检查命中硬门禁。
+#   （不忽略该路径。）更新子模块提交：cd android/app/src/main/cpp/llama.cpp
+#   && git checkout <新提交> && cd ../../../../.. && git add android/app/src/main/cpp/llama.cpp
 # - 本地 CMake 原生构建产物（.o / .cmake / .ninja_log 等），不入库。
 android/app/src/main/cpp/build*/
 
