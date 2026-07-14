@@ -1,0 +1,93 @@
+﻿*** Begin Patch
+*** Update File: D:\codex-project2\chat-agent-app2\lib\services\llm_service.dart
+@@
+   LlmService() {
+     _subscription = _eventChannel.receiveBroadcastStream().listen((event) {
+       if (event is Map) {
+         final type = event['type'] as String?;
+         if (type == 'token') _tokenController.add(event['text'] as String);
+         else if (type == 'done') _doneController.add(null);
+       }
+-    }, onError: (e) { _lastError = e.toString(); _tokenController.addError(e); });
++    }, onError: (e) {
++      _lastError = e.toString();
++      try { _tokenController.addError(e); } catch (_) {}
++    });
+   }
+*** End Patch
+*** Begin Patch
+*** Update File: D:\codex-project2\chat-agent-app2\lib\services\chat_service.dart
+@@
+   Stream<String> _sendLocalStream(List<Map<String, String>> messages) {
+     final llm = _llmService!;
+-    final controller = StreamController<String>();
++    final controller = StreamController<String>.broadcast();
+
+     () async {
+       try {
+         if (!await llm.isLoaded()) {
+           final modelPath = await llm.getDefaultModelPath();
+-          controller.add('【诊断】模型路径: $modelPath');
+-          controller.add('【诊断】正在加载模型...');
++          if (!controller.isClosed) controller.add('【诊断】模型路径: $modelPath');
++          if (!controller.isClosed) controller.add('【诊断】正在加载模型...');
+
+           final loaded = await llm.loadModel(
+             ctxSize: ApiConfig.localCtxSize,
+             nThreads: ApiConfig.localThreads,
+           );
+           if (!loaded) {
+-            controller.add('【加载失败】${llm.lastError}');
++            if (!controller.isClosed) controller.add('【加载失败】${llm.lastError}');
+             await controller.close();
+             return;
+           }
+-          controller.add('【诊断】模型加载成功');
++          if (!controller.isClosed) controller.add('【诊断】模型加载成功');
+         }
+
+         final prompt = llm.buildChatPrompt(messages, '');
+         final completer = Completer<void>();
+
+         final tokenSub = llm.tokenStream.listen(
+-          controller.add,
++          (token) { if (!controller.isClosed) controller.add(token); },
+           onError: (e) {
+-            controller.add('【推理错误】$e');
++            if (!controller.isClosed) controller.add('【推理错误】$e');
+             completer.complete();
+           },
+         );
+         final doneSub = llm.doneStream.listen((_) {
+-          completer.complete();
++          if (!completer.isCompleted) completer.complete();
+         });
+
+         await llm.generate(prompt, maxTokens: 1024);
+         await completer.future;
+
+         await tokenSub.cancel();
+         await doneSub.cancel();
+         await controller.close();
+       } catch (e) {
+-        controller.add('【异常】$e');
++        if (!controller.isClosed) controller.add('【异常】$e');
+         await controller.close();
+       }
+     }();
+
+     return controller.stream;
+   }
+*** End Patch
+*** Begin Patch
+*** Update File: D:\codex-project2\chat-agent-app2\lib\providers\chat_provider.dart
+@@
+       if (voice != null && voice.isSpeakerOn && !text.startsWith('【')) {
+         if (voice.isInCallMode) {
+           await voice.speakAndWait(text);
+         } else {
+-          voice.speak(text);
++          try { await voice.speak(text); } catch (_) {}
+         }
+       }
+*** End Patch

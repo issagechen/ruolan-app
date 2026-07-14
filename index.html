@@ -1,0 +1,666 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>若澜 - AI 智能伴侣</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;background:#1a1a1a}
+body{display:flex;justify-content:center;align-items:center}
+
+/* Phone frame */
+.phone{width:420px;height:820px;max-width:100vw;max-height:100vh;display:flex;border-radius:12px;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,.5);background:#FAF7F4;position:relative}
+
+/* Left Panel */
+.left{flex:6;display:flex;flex-direction:column;min-width:0;background:#FAF7F4}
+/* Right Panel */
+.right{flex:4;background:linear-gradient(180deg,#FDF4F0,#F8E8E0);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+
+/* Top Bar */
+.topbar{display:flex;align-items:center;padding:10px 12px;flex-shrink:0}
+.topbar .menu-btn,.topbar .icon-btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%;transition:background .2s;border:none;background:transparent;color:#8B5E3C;font-size:22px}
+.topbar .menu-btn:hover,.topbar .icon-btn:hover{background:rgba(139,94,60,.1)}
+.topbar .spacer{flex:1}
+.topbar .call-active{background:rgba(229,115,115,.2);border-radius:50%}
+.topbar .call-active .icon-btn{color:#e53935}
+.topbar .speaker-off{color:#999}
+
+/* Avatar Header */
+.av-header{text-align:center;padding:14px 0 8px;flex-shrink:0}
+.av-header .avatar{width:68px;height:68px;border-radius:50%;background:#F0E0D6;margin:0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:30px;color:#C9A88C}
+.av-header .avatar img{width:100%;height:100%;object-fit:cover}
+.av-header .name{font-size:18px;font-weight:500;color:#5C3D2E;margin-top:8px}
+.av-header .intro{font-size:11px;color:#999;margin-top:2px}
+.divider{height:1px;background:#E0D5CC;margin:0 20px;flex-shrink:0}
+
+/* Chat Area */
+.chat-area{flex:1;overflow-y:auto;padding:8px 0;scroll-behavior:smooth}
+.chat-area::-webkit-scrollbar{width:5px}
+.chat-area::-webkit-scrollbar-thumb{background:#D5C5B8;border-radius:10px}
+.chat-area::-webkit-scrollbar-track{background:transparent}
+
+.msg-row{display:flex;padding:6px 14px;align-items:flex-end}
+.msg-row.user{justify-content:flex-end}
+.msg-row.assistant{justify-content:flex-start}
+.msg-avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff}
+.msg-avatar.assistant-av{background:#E8C4A8;margin-right:8px}
+.msg-avatar.user-av{background:#6D9EEB;margin-left:8px}
+.msg-bubble{max-width:75%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.5;word-break:break-word;position:relative}
+.msg-bubble.user-msg{background:#8B5E3C;color:#fff;border-bottom-right-radius:4px}
+.msg-bubble.assistant-msg{background:#fff;color:#3C3C3C;border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.msg-time{font-size:10px;margin-top:4px;opacity:.7}
+.msg-bubble.user-msg .msg-time{color:rgba(255,255,255,.7)}
+.msg-bubble.assistant-msg .msg-time{color:#aaa}
+
+/* Streaming indicator */
+.streaming .msg-bubble::after{content:'';display:inline-block;width:6px;height:14px;background:#8B5E3C;margin-left:2px;animation:blink .6s infinite;vertical-align:text-bottom}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* Call Banner */
+.call-banner{display:flex;align-items:center;justify-content:center;padding:8px;background:#FFF3E0;gap:8px;flex-shrink:0}
+.call-banner.hidden{display:none}
+.pulse-dot{width:12px;height:12px;border-radius:50%;background:#4CAF50;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.3)}}
+.call-banner span{font-size:14px;color:#8B5E3C;font-weight:500}
+.call-banner .end-call{cursor:pointer;color:#e53935;font-size:18px;padding:4px}
+
+/* Input Bar */
+.input-bar{display:flex;align-items:center;padding:8px 12px;gap:6px;background:#fff;box-shadow:0 -2px 10px rgba(0,0,0,.04);flex-shrink:0}
+.input-bar .voice-btn{width:38px;height:38px;border:none;background:transparent;color:#8B5E3C;font-size:22px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.input-bar .voice-btn.listening{color:#e53935}
+.input-bar .input-wrap{flex:1;position:relative}
+.input-bar textarea{width:100%;border:none;background:#F5F0EC;border-radius:20px;padding:8px 36px 8px 14px;font-size:14px;resize:none;outline:none;font-family:inherit;line-height:1.4;max-height:80px}
+.input-bar textarea::placeholder{color:#c0b8b2}
+.input-bar .send-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:#8B5E3C;font-size:18px;cursor:pointer;padding:4px}
+.input-bar .hold-speak{flex:1;text-align:center;padding:9px;background:#F5F0EC;border-radius:20px;font-size:14px;color:#999;cursor:pointer;user-select:none;transition:background .15s}
+.input-bar .hold-speak:active,.input-bar .hold-speak.recording{background:#FFE0E0;color:#e57373}
+.input-bar .mode-btn{width:40px;height:40px;border-radius:50%;background:#8B5E3C;color:#fff;border:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* Right panel */
+.right .character-img{width:100%;height:100%;object-fit:cover}
+.right .placeholder{text-align:center;color:#C9A88C}
+.right .placeholder .icon{font-size:72px}
+.right .placeholder .label{font-size:18px;margin-top:8px}
+.right .img-upload{position:absolute;bottom:8px;right:8px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.3);color:#fff;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+
+/* Settings Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center}
+.modal-overlay.hidden{display:none}
+.modal{background:#FAF7F4;border-radius:16px;width:380px;max-width:95vw;max-height:85vh;overflow-y:auto;padding:24px}
+.modal h2{font-size:18px;color:#5C3D2E;margin-bottom:18px}
+.modal label{font-size:13px;color:#8B5E3C;font-weight:500;display:block;margin-bottom:4px;margin-top:14px}
+.modal label:first-of-type{margin-top:0}
+.modal input,.modal textarea{width:100%;border:none;background:#F5F0EC;border-radius:8px;padding:10px 12px;font-size:13px;outline:none;font-family:inherit;resize:vertical}
+.modal textarea{min-height:60px}
+.modal .img-pickers{display:flex;gap:16px;margin-bottom:10px}
+.modal .img-pick{text-align:center;cursor:pointer}
+.modal .img-pick .preview{width:72px;height:72px;border-radius:12px;background:#F0E0D6;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:26px;color:#C9A88C;margin-bottom:4px}
+.modal .img-pick .preview img{width:100%;height:100%;object-fit:cover}
+.modal .img-pick .lbl{font-size:12px;color:#999}
+.modal .save-btn{width:100%;padding:12px;background:#8B5E3C;color:#fff;border:none;border-radius:10px;font-size:15px;cursor:pointer;margin-top:18px}
+.modal .save-btn:hover{background:#7A4E2E}
+
+/* Suggested replies */
+.suggested{display:flex;flex-wrap:wrap;gap:6px;padding:6px 14px;flex-shrink:0;overflow-x:auto}
+.suggested:empty{display:none}
+.suggested .chip{padding:5px 12px;background:#fff;border:1px solid #E0D5CC;border-radius:14px;font-size:12px;color:#8B5E3C;cursor:pointer;white-space:nowrap;transition:background .15s}
+.suggested .chip:hover{background:#8B5E3C;color:#fff;border-color:#8B5E3C}
+
+@media(max-width:420px){.phone{width:100vw;height:100vh;border-radius:0}}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <!-- Left Panel -->
+  <div class="left">
+    <div class="topbar">
+      <button class="menu-btn" onclick="openSettings()" title="设置">☰</button>
+      <div class="spacer"></div>
+      <button class="icon-btn" id="callBtn" onclick="toggleCallMode()" title="语音通话">📞</button>
+      <button class="icon-btn" id="speakerBtn" onclick="toggleSpeaker()" title="语音播报">🔊</button>
+    </div>
+
+    <div class="av-header">
+      <div class="avatar" id="avatarDisplay">✦</div>
+      <div class="name" id="nameDisplay">若澜</div>
+      <div class="intro" id="introDisplay"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="chat-area" id="chatArea">
+      <div class="msg-row assistant">
+        <div class="msg-avatar assistant-av">✦</div>
+        <div class="msg-bubble assistant-msg">
+          你好呀，我是若澜，很高兴遇见你~
+          <div class="msg-time" id="welcomeTime"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="suggested" id="suggestedReplies"></div>
+
+    <div class="call-banner hidden" id="callBanner">
+      <div class="pulse-dot"></div>
+      <span>语音通话中...</span>
+      <span class="end-call" onclick="toggleCallMode()">📞</span>
+    </div>
+
+    <div class="input-bar">
+      <button class="voice-btn" id="voiceSendBtn" onclick="sendVoiceMessage()" title="发送语音">🎤</button>
+      <div class="input-wrap" id="textInputWrap">
+        <textarea id="msgInput" rows="1" placeholder="说点什么吧~" onkeydown="handleKey(event)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()" style="display:none">➤</button>
+      </div>
+      <div class="hold-speak" id="holdSpeak" style="display:none" onmousedown="startHold()" onmouseup="endHold()" onmouseleave="endHold()" ontouchstart="startHold()" ontouchend="endHold()">按住 说话</div>
+      <button class="mode-btn" id="modeBtn" onclick="toggleInputMode()" title="切换输入方式">🎙</button>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="right" id="rightPanel">
+    <div class="placeholder" id="rightPlaceholder">
+      <div class="icon">🌸</div>
+      <div class="label">若澜</div>
+    </div>
+    <button class="img-upload" onclick="uploadCharacterImage()" title="更换形象">📷</button>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay hidden" id="settingModal">
+<div class="modal">
+<h2>⚙ 智能体设置</h2>
+<label>形象图片</label>
+<div class="img-pickers">
+  <div class="img-pick" onclick="uploadAvatar()">
+    <div class="preview" id="avatarPreview">✦</div>
+    <div class="lbl">头像</div>
+  </div>
+  <div class="img-pick" onclick="uploadCharacterImage()">
+    <div class="preview" id="charPreview">🌸</div>
+    <div class="lbl">人物形象</div>
+  </div>
+</div>
+<label>智能体名称</label>
+<input id="setName" value="若澜">
+<label>设定描述 <span style="color:#aaa;font-weight:400">（性格/关系/风格/特长）</span></label>
+<textarea id="setDesc" rows="3" placeholder="输入设定描述..."></textarea>
+<label>声音类型</label>
+<input id="setVoice" value="默认">
+<label>形象介绍</label>
+<input id="setIntro" placeholder="一句话介绍">
+<label>开场白</label>
+<input id="setOpening" value="你好呀，我是若澜，很高兴遇见你~">
+<label>建议回复 <span style="color:#aaa;font-weight:400">（每行一个）</span></label>
+<textarea id="setReplies" rows="3" placeholder="建议回复1&#10;建议回复2"></textarea>
+<button class="save-btn" onclick="saveSettings()">💾 保存设置</button>
+</div>
+</div>
+
+<input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
+<input type="file" id="charInput" accept="image/*" style="display:none" onchange="handleCharUpload(event)">
+
+<script>
+// ========== CONFIG ==========
+const API_URL = 'http://localhost:8080/v1/chat/completions';
+const MODEL = 'deepseek-r1-distill-qwen-7b';
+
+const DEFAULT_PERSONA = `你是若澜。长发棕褐，身着宽袖汉服，耳坠精致，手持花枝，气质温婉动人。
+性格：温柔知性、敏锐洞察、善解人意、娇俏灵动。情绪稳定，自带通透包容感，能精准捕捉对方文字背后的潜台词与真实需求。
+能力：多行业资深专家，理论扎实、实战经验丰富，回答深刻具体、逻辑严密且具启发性；同时也是情感恋爱大师，精通恋爱心理学与沟通技巧，如推拉、情绪共鸣、悬念引导、赞美与调侃结合等，让对话有张力。
+说话风格：语气温柔舒缓，带着知性通透感，偶尔夹杂俏皮语气。表达先共情安抚，后解决问题；专业解答后，适时加温柔关心或俏皮情话收尾；对方情绪低落时，优先提供情绪价值。
+禁忌：杜绝AI机械式套话，完全沉浸若澜身份。`;
+
+// ========== STATE ==========
+let messages = [];
+let isStreaming = false;
+let speakerOn = true;
+let callMode = false;
+let inputMode = 'text'; // 'text' or 'voice'
+let recognition = null;
+let isRecognizing = false;
+
+let settings = {
+  name: '若澜',
+  personaDesc: '',
+  voice: '默认',
+  intro: '',
+  openingLine: '你好呀，我是若澜，很高兴遇见你~',
+  suggestedReplies: [],
+  avatarData: null,
+  charData: null
+};
+
+let pendingAvatar = null;
+let pendingChar = null;
+
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded', () => {
+  loadSettings();
+  loadMessages();
+  applySettings();
+  document.getElementById('welcomeTime').textContent = formatTime(new Date());
+  document.getElementById('msgInput').addEventListener('input', updateSendBtn);
+  initSpeechRecognition();
+});
+
+function initSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'zh-CN';
+    recognition.interimResults = false;
+    recognition.continuous = false;
+    recognition.onresult = (event) => {
+      const text = event.results[0][0].transcript;
+      if (text.trim()) sendMsg(text.trim());
+    };
+    recognition.onerror = () => { isRecognizing = false; updateVoiceBtn(); };
+    recognition.onend = () => { isRecognizing = false; updateVoiceBtn(); };
+  }
+}
+
+// ========== MESSAGES ==========
+function addMsg(role, content, save = true) {
+  const msg = { role, content, time: new Date().toISOString() };
+  messages.push(msg);
+  renderMsg(msg);
+  if (save) saveMessages();
+}
+
+function renderMsg(msg) {
+  const chat = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'msg-row ' + msg.role;
+  div.innerHTML = `
+    ${msg.role==='assistant'?'<div class="msg-avatar assistant-av">✦</div><div class="msg-bubble assistant-msg">'+escapeHtml(msg.content)+'<div class="msg-time">'+formatTime(new Date(msg.time))+'</div></div>':''}
+    ${msg.role==='user'?'<div class="msg-bubble user-msg">'+escapeHtml(msg.content)+'<div class="msg-time">'+formatTime(new Date(msg.time))+'</div></div><div class="msg-avatar user-av">👤</div>':''}
+  `;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML.replace(/\n/g, '<br>');
+}
+
+function formatTime(dt) {
+  const d = new Date(dt);
+  return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+}
+
+// ========== SEND ==========
+async function sendMsg(text) {
+  if (!text.trim() || isStreaming) return;
+  const t = text.trim();
+  addMsg('user', t);
+  document.getElementById('msgInput').value = '';
+  updateSendBtn();
+  document.getElementById('suggestedReplies').innerHTML = '';
+
+  isStreaming = true;
+  const chat = document.getElementById('chatArea');
+  const streamingDiv = document.createElement('div');
+  streamingDiv.className = 'msg-row assistant streaming';
+  streamingDiv.innerHTML = '<div class="msg-avatar assistant-av">✦</div><div class="msg-bubble assistant-msg"></div>';
+  chat.appendChild(streamingDiv);
+  const bubble = streamingDiv.querySelector('.msg-bubble');
+  let fullContent = '';
+
+  try {
+    const systemPrompt = buildSystemPrompt();
+    const apiMsgs = [{role:'system',content:systemPrompt}];
+    const recent = messages.slice(-40);
+    for (const m of recent) apiMsgs.push({role:m.role,content:m.content});
+
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({model:MODEL,messages:apiMsgs,stream:true})
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error('HTTP ' + resp.status + ': ' + errText);
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream:true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (line.startsWith('data: ') && !line.includes('[DONE]')) {
+          try {
+            const json = JSON.parse(line.slice(6));
+            const content = json.choices?.[0]?.delta?.content;
+            if (content) {
+              fullContent += content;
+              bubble.textContent = fullContent;
+              chat.scrollTop = chat.scrollHeight;
+            }
+          } catch(e) {}
+        }
+      }
+    }
+
+    streamingDiv.classList.remove('streaming');
+    bubble.innerHTML = escapeHtml(fullContent) + '<div class="msg-time">'+formatTime(new Date())+'</div>';
+    messages.push({role:'assistant',content:fullContent,time:new Date().toISOString()});
+    saveMessages();
+    if (speakerOn) speak(fullContent);
+
+  } catch(e) {
+    fullContent = '【网络错误】' + e.message;
+    bubble.textContent = fullContent;
+    streamingDiv.classList.remove('streaming');
+  }
+
+  isStreaming = false;
+}
+
+function sendMessage() {
+  sendMsg(document.getElementById('msgInput').value);
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function updateSendBtn() {
+  const inp = document.getElementById('msgInput');
+  const btn = document.getElementById('sendBtn');
+  btn.style.display = inp.value.trim() ? '' : 'none';
+}
+
+// ========== SPEAKER ==========
+function toggleSpeaker() {
+  speakerOn = !speakerOn;
+  const btn = document.getElementById('speakerBtn');
+  btn.textContent = speakerOn ? '🔊' : '🔇';
+  if (speakerOn) btn.classList.remove('speaker-off');
+  else btn.classList.add('speaker-off');
+  if (!speakerOn && window.speechSynthesis) window.speechSynthesis.cancel();
+}
+
+function speak(text) {
+  if (!speakerOn || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/[\*\_\#\`\~]/g,''));
+  u.lang = 'zh-CN';
+  u.rate = 0.85;
+  u.pitch = 1.1;
+  u.volume = 1;
+  window.speechSynthesis.speak(u);
+}
+
+// ========== VOICE INPUT ==========
+function toggleInputMode() {
+  inputMode = inputMode === 'text' ? 'voice' : 'text';
+  const modeBtn = document.getElementById('modeBtn');
+  const textWrap = document.getElementById('textInputWrap');
+  const holdSpeak = document.getElementById('holdSpeak');
+  if (inputMode === 'voice') {
+    modeBtn.textContent = '⌨';
+    textWrap.style.display = 'none';
+    holdSpeak.style.display = '';
+  } else {
+    modeBtn.textContent = '🎙';
+    textWrap.style.display = '';
+    holdSpeak.style.display = 'none';
+  }
+}
+
+function sendVoiceMessage() {
+  if (!recognition) { alert('浏览器不支持语音识别'); return; }
+  if (isRecognizing) { recognition.stop(); isRecognizing = false; updateVoiceBtn(); return; }
+  isRecognizing = true;
+  updateVoiceBtn();
+  recognition.start();
+}
+
+function updateVoiceBtn() {
+  const btn = document.getElementById('voiceSendBtn');
+  btn.textContent = isRecognizing ? '🔴' : '🎤';
+  if (isRecognizing) btn.classList.add('listening');
+  else btn.classList.remove('listening');
+}
+
+function startHold() {
+  if (!recognition) return;
+  document.getElementById('holdSpeak').classList.add('recording');
+  document.getElementById('holdSpeak').textContent = '聆听中...';
+  recognition.start();
+}
+
+function endHold() {
+  document.getElementById('holdSpeak').classList.remove('recording');
+  document.getElementById('holdSpeak').textContent = '按住 说话';
+}
+
+// ========== CALL MODE ==========
+function toggleCallMode() {
+  callMode = !callMode;
+  const banner = document.getElementById('callBanner');
+  const btn = document.getElementById('callBtn');
+  if (callMode) {
+    banner.classList.remove('hidden');
+    btn.parentElement.classList.add('call-active');
+    if (recognition) startCallLoop();
+  } else {
+    banner.classList.add('hidden');
+    btn.parentElement.classList.remove('call-active');
+  }
+}
+
+async function startCallLoop() {
+  if (!callMode || !recognition) return;
+  recognition.start();
+  recognition.onresult = async (event) => {
+    if (!callMode) return;
+    const text = event.results[0][0].transcript;
+    if (text.trim()) {
+      addMsg('user', text.trim(), false);
+      isStreaming = true;
+      const systemPrompt = buildSystemPrompt();
+      const apiMsgs = [{role:'system',content:systemPrompt}];
+      const recent = messages.slice(-40);
+      for (const m of recent) apiMsgs.push({role:m.role,content:m.content});
+
+      try {
+        const resp = await fetch(API_URL, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({model:MODEL,messages:apiMsgs,stream:true})
+        });
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '', full = '';
+        while(true) {
+          const {done,value} = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value,{stream:true});
+          const lines = buffer.split('\n');
+          buffer = lines.pop()||'';
+          for (const line of lines) {
+            if (line.startsWith('data: ') && !line.includes('[DONE]')) {
+              try {
+                const c = JSON.parse(line.slice(6)).choices?.[0]?.delta?.content;
+                if (c) full += c;
+              } catch(e){}
+            }
+          }
+        }
+        addMsg('assistant', full, false);
+        speak(full);
+      } catch(e) {}
+      isStreaming = false;
+    }
+    if (callMode) setTimeout(startCallLoop, 500);
+  };
+}
+
+// ========== SETTINGS ==========
+function openSettings() {
+  loadSettings();
+  document.getElementById('setName').value = settings.name;
+  document.getElementById('setDesc').value = settings.personaDesc;
+  document.getElementById('setVoice').value = settings.voice;
+  document.getElementById('setIntro').value = settings.intro;
+  document.getElementById('setOpening').value = settings.openingLine;
+  document.getElementById('setReplies').value = settings.suggestedReplies.join('\n');
+  updateSettingsPreview();
+  document.getElementById('settingModal').classList.remove('hidden');
+  pendingAvatar = settings.avatarData;
+  pendingChar = settings.charData;
+}
+
+function closeSettings() {
+  document.getElementById('settingModal').classList.add('hidden');
+}
+
+document.getElementById('settingModal').addEventListener('click', function(e) {
+  if (e.target === this) closeSettings();
+});
+
+function saveSettings() {
+  settings.name = document.getElementById('setName').value || '若澜';
+  settings.personaDesc = document.getElementById('setDesc').value;
+  settings.voice = document.getElementById('setVoice').value || '默认';
+  settings.intro = document.getElementById('setIntro').value;
+  settings.openingLine = document.getElementById('setOpening').value || '你好呀，我是若澜，很高兴遇见你~';
+  settings.suggestedReplies = document.getElementById('setReplies').value.split('\n').map(s=>s.trim()).filter(s=>s);
+  if (pendingAvatar !== undefined) settings.avatarData = pendingAvatar;
+  if (pendingChar !== undefined) settings.charData = pendingChar;
+
+  localStorage.setItem('ruolan_settings', JSON.stringify(settings));
+  applySettings();
+  closeSettings();
+  messages = [];
+  saveMessages();
+  const chat = document.getElementById('chatArea');
+  chat.innerHTML = '';
+  const wMsg = {role:'assistant',content:settings.openingLine,time:new Date().toISOString()};
+  messages.push(wMsg);
+  renderMsg(wMsg);
+}
+
+function loadSettings() {
+  const saved = localStorage.getItem('ruolan_settings');
+  if (saved) {
+    try {
+      const s = JSON.parse(saved);
+      settings = {...settings, ...s};
+    } catch(e) {}
+  }
+}
+
+function applySettings() {
+  document.getElementById('nameDisplay').textContent = settings.name;
+  document.getElementById('introDisplay').textContent = settings.intro;
+
+  const avDisplay = document.getElementById('avatarDisplay');
+  if (settings.avatarData) {
+    avDisplay.innerHTML = '<img src="'+settings.avatarData+'">';
+  } else {
+    avDisplay.innerHTML = '✦';
+  }
+
+  const rightPlaceholder = document.getElementById('rightPlaceholder');
+  if (settings.charData) {
+    const existing = document.getElementById('charImg');
+    if (existing) existing.src = settings.charData;
+    else {
+      const img = document.createElement('img');
+      img.id = 'charImg';
+      img.className = 'character-img';
+      img.src = settings.charData;
+      rightPlaceholder.style.display = 'none';
+      document.getElementById('rightPanel').insertBefore(img, rightPlaceholder.nextSibling);
+    }
+  } else {
+    const existing = document.getElementById('charImg');
+    if (existing) existing.remove();
+    rightPlaceholder.style.display = '';
+  }
+
+  const replies = document.getElementById('suggestedReplies');
+  if (settings.suggestedReplies.length > 0) {
+    replies.innerHTML = settings.suggestedReplies.map(r =>
+      '<span class="chip" onclick="sendMsg(\''+r.replace(/'/g,"\\'")+'\')">'+escapeHtml(r)+'</span>'
+    ).join('');
+  } else {
+    replies.innerHTML = '';
+  }
+
+  updateSettingsPreview();
+}
+
+function updateSettingsPreview() {
+  const avp = document.getElementById('avatarPreview');
+  const chp = document.getElementById('charPreview');
+  avp.innerHTML = pendingAvatar ? '<img src="'+pendingAvatar+'">' : '✦';
+  chp.innerHTML = pendingChar ? '<img src="'+pendingChar+'">' : '🌸';
+}
+
+function uploadAvatar() { document.getElementById('avatarInput').click(); }
+function uploadCharacterImage() { document.getElementById('charInput').click(); }
+
+function handleAvatarUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) { pendingAvatar = ev.target.result; updateSettingsPreview(); };
+  reader.readAsDataURL(file);
+}
+function handleCharUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) { pendingChar = ev.target.result; updateSettingsPreview(); };
+  reader.readAsDataURL(file);
+}
+
+// ========== PERSISTENCE ==========
+function saveMessages() {
+  try {
+    localStorage.setItem('ruolan_messages', JSON.stringify(messages.slice(-200)));
+  } catch(e) {}
+}
+function loadMessages() {
+  const saved = localStorage.getItem('ruolan_messages');
+  if (saved) {
+    try {
+      const msgs = JSON.parse(saved);
+      for (const m of msgs) {
+        messages.push(m);
+        renderMsg(m);
+      }
+    } catch(e) {}
+  }
+}
+
+// ========== SYSTEM PROMPT ==========
+function buildSystemPrompt() {
+  let p = DEFAULT_PERSONA;
+  if (settings.personaDesc) p += '\n\n补充设定：' + settings.personaDesc;
+  if (settings.intro) p += '\n\n你对用户的自我介绍：' + settings.intro;
+  return p;
+}
+</script>
+
+</body>
+</html>

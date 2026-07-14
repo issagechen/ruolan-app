@@ -1,0 +1,45 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+*.iml
+.idea/
+.vscode/
+*.g.dart
+*.freezed.dart
+# 注意：不要忽略 pubspec.lock —— Flutter 应提交它以保证依赖可复现
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/key.properties
+android/**/gradle-wrapper.jar
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Runner/GeneratedPluginRegistrant.*
+
+# 模型与巨型 vendored 源码树（仓库体积控制）
+# - 本地 GGUF 模型文件一律不入库（运行时放置）
+*.gguf
+# - llama.cpp 是 vendored 的 190MB 外部源码树，不进仓库。
+#   C++ 语法检查由 scripts/check_native_cpp.sh 在 CI 中按需浅克隆固定提交完成。
+android/app/src/main/cpp/llama.cpp/
+# - 本地 CMake 原生构建产物（.o / .cmake / .ninja_log 等），不入库。
+android/app/src/main/cpp/build*/
+
+# 代理 / 工具状态
+.workbuddy/
+.agents/
+
+# Misc
+.DS_Store
+*.log
+*.pyc
+*.swp
+.svn/
