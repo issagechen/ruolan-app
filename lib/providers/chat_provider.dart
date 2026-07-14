@@ -277,7 +277,7 @@ class ChatProvider extends ChangeNotifier {
     }
     if (newSummary.isEmpty) return;
 
-    final combined = session.summaryText.isEmpty ? newSummary : '${session.summaryText}\n${newSummary}';
+    final combined = session.summaryText.isEmpty ? newSummary : '${session.summaryText}\n$newSummary';
     final newCount = _messages.length - keepRecent;
     final updated = session.copyWith(summaryText: combined, summarizedCount: newCount);
     final idx = _sessions.indexWhere((s) => s.id == updated.id);

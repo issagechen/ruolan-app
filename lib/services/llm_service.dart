@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/services.dart';
 
 class LlmService {
@@ -18,8 +18,11 @@ class LlmService {
     _subscription = _eventChannel.receiveBroadcastStream().listen((event) {
       if (event is Map) {
         final type = event['type'] as String?;
-        if (type == 'token' && !_tokenController.isClosed) _tokenController.add(event['text'] as String);
-        else if (type == 'done' && !_doneController.isClosed) _doneController.add(null);
+        if (type == 'token' && !_tokenController.isClosed) {
+          _tokenController.add(event['text'] as String);
+        } else if (type == 'done' && !_doneController.isClosed) {
+          _doneController.add(null);
+        }
       }
     }, onError: (e) { _lastError = e.toString(); try { _tokenController.addError(e); } catch (_) {} });
   }

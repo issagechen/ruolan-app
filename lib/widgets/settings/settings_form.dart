@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -95,10 +95,13 @@ class _SettingsFormState extends State<SettingsForm> {
     );
 
     if (cropped == null) return;
-    final dataUrl = 'data:image/png;base64,' + base64Encode(cropped);
+    final dataUrl = 'data:image/png;base64,${base64Encode(cropped)}';
     setState(() {
-      if (isAvatar) _avatarDataUrl = dataUrl;
-      else _characterDataUrl = dataUrl;
+      if (isAvatar) {
+        _avatarDataUrl = dataUrl;
+      } else {
+        _characterDataUrl = dataUrl;
+      }
     });
   }
 
@@ -240,7 +243,7 @@ class _SettingsFormState extends State<SettingsForm> {
   Widget _img(String label, String? dataUrl, VoidCallback onTap)=>GestureDetector(onTap:onTap, child:Column(children:[
     ClipRRect(borderRadius:BorderRadius.circular(12),
       child:Container(width:80,height:80,color:const Color(0xFFF0E0D6),
-        child:(dataUrl!=null&&dataUrl!.isNotEmpty)?_preview(dataUrl):const Icon(Icons.add_photo_alternate_outlined,color:Color(0xFFC9A88C),size:32))),
+        child:(dataUrl!=null&&dataUrl.isNotEmpty)?_preview(dataUrl):const Icon(Icons.add_photo_alternate_outlined,color:Color(0xFFC9A88C),size:32))),
     const SizedBox(height:6),Text(label,style:TextStyle(fontSize:13,color:Colors.grey[600]))]));
 
   Widget _preview(String path){

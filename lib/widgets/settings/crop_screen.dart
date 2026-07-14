@@ -99,8 +99,9 @@ class _CropScreenState extends State<CropScreen> {
         actions: [
           TextButton(
             onPressed: () async {
+              final navigator = Navigator.of(context);
               final result = await _cropAndSave();
-              if (mounted) Navigator.pop(context, result);
+              if (navigator.mounted) navigator.pop(result);
             },
             child: const Text("确认", style: TextStyle(color: Colors.white, fontSize: 15)),
           ),
@@ -130,9 +131,9 @@ class _CropScreenState extends State<CropScreen> {
               final initDy = (viewH - displayH) / 2;
 
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                final matrix = Matrix4.identity()
-                  ..translate(initDx, initDy)
-                  ..scale(panScale);
+              final matrix = Matrix4.identity()
+                ..translateByDouble(initDx, initDy, 0.0, 1.0)
+                ..scaleByDouble(panScale, panScale, panScale, 1.0);
                 _transformCtrl.value = matrix;
               });
 

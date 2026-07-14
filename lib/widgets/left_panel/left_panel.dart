@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/chat_provider.dart';
@@ -18,16 +18,16 @@ class LeftPanel extends StatelessWidget {
       decoration: const BoxDecoration(
         color: Color(0xFFFAF7F4),
       ),
-      child: Column(
+      child: const Column(
         children: [
-          const TopBar(),
-          const AvatarHeader(),
-          const Divider(height: 1, thickness: 0.5, color: Color(0xFFE0D5CC)),
-          const Expanded(child: ChatArea()),
-          const _CallController(),
-          const _ModelErrorBanner(),
-          const _SuggestedReplies(),
-          const InputBar(),
+          TopBar(),
+          AvatarHeader(),
+          Divider(height: 1, thickness: 0.5, color: Color(0xFFE0D5CC)),
+          Expanded(child: ChatArea()),
+          _CallController(),
+          _ModelErrorBanner(),
+          _SuggestedReplies(),
+          InputBar(),
         ],
       ),
     );
@@ -120,7 +120,7 @@ class _CallControllerState extends State<_CallController> {
           break;
         }
         _voiceProv.setCallState(CallState.idle,
-          statusText: '未识别到语音，再试一次（${noResultCount}/$maxNoResult）');
+          statusText: '未识别到语音，再试一次（$noResultCount/$maxNoResult）');
         await Future.delayed(const Duration(seconds: 2));
         continue;
       }
@@ -192,7 +192,7 @@ class _CallControllerState extends State<_CallController> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.15),
+                    color: Colors.red.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Row(
@@ -215,11 +215,11 @@ class _CallControllerState extends State<_CallController> {
   Widget _buildStatusIcon(CallState state) {
     switch (state) {
       case CallState.listening:
-        return _PulsingDot(color: const Color(0xFF4CAF50));
+        return const _PulsingDot(color: Color(0xFF4CAF50));
       case CallState.thinking:
-        return _ThinkingDots();
+        return const _ThinkingDots();
       case CallState.speaking:
-        return _PulsingDot(color: const Color(0xFFFF9800));
+        return const _PulsingDot(color: Color(0xFFFF9800));
       case CallState.idle:
         return const Icon(Icons.mic, color: Color(0xFF8B5E3C), size: 20);
     }
@@ -375,7 +375,7 @@ class _PulsingDotState extends State<_PulsingDot> with SingleTickerProviderState
           height: 12,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Color.lerp(widget.color.withOpacity(0.4), widget.color, _ctrl.value),
+            color: Color.lerp(widget.color.withValues(alpha: 0.4), widget.color, _ctrl.value),
           ),
         );
       },
@@ -420,7 +420,7 @@ class _ThinkingDotsState extends State<_ThinkingDots> with SingleTickerProviderS
               margin: const EdgeInsets.symmetric(horizontal: 2),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF8B5E3C).withOpacity(0.3 + opacity * 0.7),
+                color: const Color(0xFF8B5E3C).withValues(alpha: 0.3 + opacity * 0.7),
               ),
             );
           }),

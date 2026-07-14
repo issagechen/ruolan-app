@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/voice_provider.dart';
 import '../../screens/settings_screen.dart';
@@ -65,7 +65,7 @@ class TopBar extends StatelessWidget {
                   padding: const EdgeInsets.all(8),
                   decoration: voice.isInCallMode
                       ? BoxDecoration(
-                          color: const Color(0xFFE57373).withOpacity(0.2),
+                          color: const Color(0xFFE57373).withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         )
                       : null,

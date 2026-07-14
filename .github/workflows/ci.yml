@@ -12,9 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # 钉死 Flutter 版本，与本地验证环境（3.44.4）完全一致，避免浮动 '3.x'
+      # 解析到更新的 Dart 后把某些 lint 升为 error 导致 CI 崩溃。
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'
+          flutter-version: '3.44.4'
           channel: 'stable'
       - name: Install dependencies
         run: flutter pub get
@@ -39,7 +41,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'
+          flutter-version: '3.44.4'
           channel: 'stable'
 
       # 安装 build.gradle.kts 中固定的 NDK 版本（否则 gradle 会因找不到而失败）。
