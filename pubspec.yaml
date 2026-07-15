@@ -1,4 +1,4 @@
-﻿name: ruolan_app
+name: ruolan_app
 description: "若澜 - AI 智能伴侣"
 publish_to: "none"
 version: 1.0.0+1
@@ -19,6 +19,7 @@ dependencies:
   image_picker: ^1.0.7
   intl: ^0.19.0
   path: ^1.8.3
+  flutter_markdown: ^0.7.7+1
 
 dev_dependencies:
   flutter_test:

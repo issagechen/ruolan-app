@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 class ChatBubble extends StatelessWidget {
   final String content;
@@ -8,6 +9,7 @@ class ChatBubble extends StatelessWidget {
   final VoidCallback? onResend;
   final VoidCallback? onEdit;
   final bool isFailed;
+  final bool isStreaming;
 
   const ChatBubble({
     super.key,
@@ -17,6 +19,7 @@ class ChatBubble extends StatelessWidget {
     this.onResend,
     this.onEdit,
     this.isFailed = false,
+    this.isStreaming = false,
   });
 
   void _copyText(BuildContext context) {
@@ -69,14 +72,7 @@ class ChatBubble extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      content,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: isUser ? Colors.white : const Color(0xFF3C3C3C),
-                        height: 1.5,
-                      ),
-                    ),
+                    _buildContent(),
                     const SizedBox(height: 4),
                     Text(
                       _formatTime(timestamp),
@@ -106,6 +102,41 @@ class ChatBubble extends StatelessWidget {
             if (isUser) _buildAvatar(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    // 用户消息保持纯文本；助手流式阶段也用纯文本（避免未闭合代码块错乱），完成后用 Markdown 渲染。
+    final useMarkdown = !isUser && !isStreaming;
+    if (!useMarkdown) {
+      return Text(
+        content,
+        style: TextStyle(
+          fontSize: 15,
+          color: isUser ? Colors.white : const Color(0xFF3C3C3C),
+          height: 1.5,
+        ),
+      );
+    }
+    return MarkdownBody(
+      data: content,
+      styleSheet: MarkdownStyleSheet(
+        p: const TextStyle(fontSize: 15, color: Color(0xFF3C3C3C), height: 1.5),
+        strong: const TextStyle(fontSize: 15, color: Color(0xFF3C3C3C), fontWeight: FontWeight.bold, height: 1.5),
+        em: const TextStyle(fontSize: 15, color: Color(0xFF3C3C3C), fontStyle: FontStyle.italic, height: 1.5),
+        listBullet: const TextStyle(fontSize: 15, color: Color(0xFF3C3C3C), height: 1.5),
+        h1: const TextStyle(fontSize: 20, color: Color(0xFF3C3C3C), fontWeight: FontWeight.bold),
+        h2: const TextStyle(fontSize: 18, color: Color(0xFF3C3C3C), fontWeight: FontWeight.bold),
+        h3: const TextStyle(fontSize: 16, color: Color(0xFF3C3C3C), fontWeight: FontWeight.bold),
+        blockquote: const TextStyle(fontSize: 15, color: Color(0xFF6B5B4B), height: 1.5),
+        code: const TextStyle(fontSize: 13, color: Color(0xFF3C3C3C), backgroundColor: Color(0xFFF3EFEA), fontFamily: 'monospace'),
+        codeblockDecoration: BoxDecoration(
+          color: const Color(0xFFF3EFEA),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFE0D5CC)),
+        ),
+        a: const TextStyle(fontSize: 15, color: Color(0xFF8B5E3C), decoration: TextDecoration.underline),
       ),
     );
   }

@@ -35,6 +35,7 @@ class ChatArea extends StatelessWidget {
                   content: chat.streamingContent,
                   isUser: false,
                   timestamp: DateTime.now(),
+                  isStreaming: true,
                 );
               }
               final msg = messages[msgIndex];
