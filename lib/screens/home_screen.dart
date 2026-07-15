@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../widgets/left_panel/left_panel.dart';
 import '../widgets/right_panel/right_panel.dart';
 

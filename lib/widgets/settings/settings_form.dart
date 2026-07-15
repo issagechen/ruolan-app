@@ -1,3 +1,4 @@
+import '../../theme/ruolan_colors.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -148,7 +149,7 @@ class _SettingsFormState extends State<SettingsForm> {
         onSelectionChanged: (s) => setState(() => _mode = s.first),
         style: SegmentedButton.styleFrom(
           selectedForegroundColor: Colors.white,
-          selectedBackgroundColor: const Color(0xFF8B5E3C),
+          selectedBackgroundColor: RuolanColors.of(context).primaryFg,
         ),
       ),
       const SizedBox(height: 10),
@@ -163,7 +164,7 @@ class _SettingsFormState extends State<SettingsForm> {
           decoration: InputDecoration(
             hintText: 'API Key（留空则不带鉴权头）',
             hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-            filled: true, fillColor: const Color(0xFFF5F0EC),
+            filled: true, fillColor: RuolanColors.of(context).surfaceVariant,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12)),
         ),
@@ -201,10 +202,10 @@ class _SettingsFormState extends State<SettingsForm> {
         _sec('本地模型'), const SizedBox(height: 8),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.model_training_outlined, color: Color(0xFF8B5E3C)),
-          title: const Text('模型管理', style: TextStyle(fontSize: 15, color: Color(0xFF5C3D2E))),
-          subtitle: const Text('切换 / 查看本地 GGUF 模型，切换后热重载', style: TextStyle(fontSize: 12, color: Colors.grey)),
-          trailing: const Icon(Icons.chevron_right, color: Color(0xFFC9A88C)),
+          leading: Icon(Icons.model_training_outlined, color: RuolanColors.of(context).primaryFg),
+          title: Text('模型管理', style: TextStyle(fontSize: 15, color: RuolanColors.of(context).onSurfaceStrong)),
+          subtitle: Text('切换 / 查看本地 GGUF 模型，切换后热重载', style: TextStyle(fontSize: 12, color: RuolanColors.of(context).onSurfaceMuted)),
+          trailing: Icon(Icons.chevron_right, color: RuolanColors.of(context).primaryFg),
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const ModelManagerScreen()),
           ),
@@ -213,43 +214,43 @@ class _SettingsFormState extends State<SettingsForm> {
       ] else
         const SizedBox(height: 32),
       SizedBox(height: 48, child: ElevatedButton(onPressed: _save,
-        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B5E3C), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+        style: ElevatedButton.styleFrom(backgroundColor: RuolanColors.of(context).primaryFg, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
         child: const Text('保存设置', style: TextStyle(fontSize: 16)))),
     ]);
   }
 
-  Widget _sec(String t)=>Text(t, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF5C3D2E)));
-  Widget _fld(TextEditingController c, String h, int m)=>TextField(controller:c,maxLines:m,decoration:InputDecoration(hintText:h,hintStyle:TextStyle(color:Colors.grey[400],fontSize:14),filled:true,fillColor:const Color(0xFFF5F0EC),border:OutlineInputBorder(borderRadius:BorderRadius.circular(10),borderSide:BorderSide.none),contentPadding:const EdgeInsets.symmetric(horizontal:14,vertical:12)));
+  Widget _sec(String t)=>Text(t, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: RuolanColors.of(context).onSurfaceStrong));
+  Widget _fld(TextEditingController c, String h, int m)=>TextField(controller:c,maxLines:m,decoration:InputDecoration(hintText:h,hintStyle:TextStyle(color:Colors.grey[400],fontSize:14),filled:true,fillColor:RuolanColors.of(context).surfaceVariant,border:OutlineInputBorder(borderRadius:BorderRadius.circular(10),borderSide:BorderSide.none),contentPadding:const EdgeInsets.symmetric(horizontal:14,vertical:12)));
 
   Widget _num(String label, TextEditingController c, String hint)=>Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
-    Text(label, style: const TextStyle(fontSize: 13, color: Color(0xFF5C3D2E))),
+    Text(label, style: TextStyle(fontSize: 13, color: RuolanColors.of(context).onSurfaceStrong)),
     const SizedBox(height: 6),
     TextField(controller: c, keyboardType: TextInputType.number,
       decoration: InputDecoration(hintText: hint, hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-        filled: true, fillColor: const Color(0xFFF5F0EC),
+        filled: true, fillColor: RuolanColors.of(context).surfaceVariant,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12))),
   ]);
 
   Widget _slider(String label, double value, double min, double max, String shown, ValueChanged<double> onChanged)=>Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
     Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:[
-      Text(label, style: const TextStyle(fontSize: 13, color: Color(0xFF5C3D2E))),
-      Text(shown, style: const TextStyle(fontSize: 13, color: Color(0xFF8B5E3C))),
+      Text(label, style: TextStyle(fontSize: 13, color: RuolanColors.of(context).onSurfaceStrong)),
+      Text(shown, style: TextStyle(fontSize: 13, color: RuolanColors.of(context).primaryFg)),
     ]),
     const SizedBox(height: 2),
     Slider(value: value, min: min, max: max, divisions: ((max - min) * 20).toInt(),
-      activeColor: const Color(0xFF8B5E3C), inactiveColor: const Color(0xFFE0CFC0), onChanged: onChanged),
+      activeColor: RuolanColors.of(context).primaryFg, inactiveColor: RuolanColors.of(context).surfaceVariant2, onChanged: onChanged),
   ]);
 
   Widget _img(String label, String? dataUrl, VoidCallback onTap)=>GestureDetector(onTap:onTap, child:Column(children:[
     ClipRRect(borderRadius:BorderRadius.circular(12),
-      child:Container(width:80,height:80,color:const Color(0xFFF0E0D6),
-        child:(dataUrl!=null&&dataUrl.isNotEmpty)?_preview(dataUrl):const Icon(Icons.add_photo_alternate_outlined,color:Color(0xFFC9A88C),size:32))),
+      child:Container(width:80,height:80,color:RuolanColors.of(context).surfaceVariant2,
+        child:(dataUrl!=null&&dataUrl.isNotEmpty)?_preview(dataUrl):Icon(Icons.add_photo_alternate_outlined,color:RuolanColors.of(context).primaryFg,size:32))),
     const SizedBox(height:6),Text(label,style:TextStyle(fontSize:13,color:Colors.grey[600]))]));
 
   Widget _preview(String path){
     if(path.startsWith('data:image')){final b=base64Decode(path.split(',').last);return Image.memory(Uint8List.fromList(b),fit:BoxFit.cover);}
-    if(kIsWeb)return Image.network(path,fit:BoxFit.cover,errorBuilder:(_,__,___)=>const Icon(Icons.add_photo_alternate_outlined,color:Color(0xFFC9A88C),size:32));
-    return Image.asset(path,fit:BoxFit.cover,errorBuilder:(_,__,___)=>const Icon(Icons.add_photo_alternate_outlined,color:Color(0xFFC9A88C),size:32));
+    if(kIsWeb)return Image.network(path,fit:BoxFit.cover,errorBuilder:(_,__,___)=>Icon(Icons.add_photo_alternate_outlined,color:RuolanColors.of(context).primaryFg,size:32));
+    return Image.asset(path,fit:BoxFit.cover,errorBuilder:(_,__,___)=>Icon(Icons.add_photo_alternate_outlined,color:RuolanColors.of(context).primaryFg,size:32));
   }
 }

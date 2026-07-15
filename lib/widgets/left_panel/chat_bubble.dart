@@ -1,3 +1,4 @@
+import '../../theme/ruolan_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -44,14 +45,14 @@ class ChatBubble extends StatelessWidget {
           mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            if (!isUser) _buildAvatar(),
+            if (!isUser) _buildAvatar(context),
             if (!isUser) const SizedBox(width: 8),
             Flexible(
               child: Container(
                 constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.4),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: isUser ? const Color(0xFF8B5E3C) : Colors.white,
+                  color: isUser ? RuolanColors.of(context).primaryFg : RuolanColors.of(context).surface,
                   borderRadius: BorderRadius.only(
                     topLeft: const Radius.circular(16),
                     topRight: const Radius.circular(16),
@@ -59,7 +60,7 @@ class ChatBubble extends StatelessWidget {
                     bottomRight: Radius.circular(isUser ? 4 : 16),
                   ),
                   border: isFailed
-                      ? Border.all(color: const Color(0xFFE0A89E), width: 1)
+                      ? Border.all(color: RuolanColors.of(context).errorBorder, width: 1)
                       : null,
                   boxShadow: [
                     BoxShadow(
@@ -72,13 +73,13 @@ class ChatBubble extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildContent(),
+                    _buildContent(context),
                     const SizedBox(height: 4),
                     Text(
                       _formatTime(timestamp),
                       style: TextStyle(
                         fontSize: 11,
-                        color: isUser ? Colors.white70 : Colors.grey,
+                        color: isUser ? Colors.white70 : RuolanColors.of(context).onSurfaceMuted,
                       ),
                     ),
                     if (onResend != null || onEdit != null)
@@ -87,10 +88,10 @@ class ChatBubble extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (onEdit != null) _buildAction('编辑', Icons.edit, onEdit!),
+                            if (onEdit != null) _buildAction(context, '编辑', Icons.edit, onEdit!),
                             if (onEdit != null && onResend != null)
                               const SizedBox(width: 8),
-                            if (onResend != null) _buildAction('重发', Icons.refresh, onResend!),
+                            if (onResend != null) _buildAction(context, '重发', Icons.refresh, onResend!),
                           ],
                         ),
                       ),
@@ -99,14 +100,14 @@ class ChatBubble extends StatelessWidget {
               ),
             ),
             if (isUser) const SizedBox(width: 8),
-            if (isUser) _buildAvatar(),
+            if (isUser) _buildAvatar(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(BuildContext context) {
     // 用户消息保持纯文本；助手流式阶段也用纯文本（避免未闭合代码块错乱），完成后用 Markdown 渲染。
     final useMarkdown = !isUser && !isStreaming;
     if (!useMarkdown) {
@@ -114,7 +115,7 @@ class ChatBubble extends StatelessWidget {
         content,
         style: TextStyle(
           fontSize: 15,
-          color: isUser ? Colors.white : const Color(0xFF3C3C3C),
+          color: isUser ? Colors.white : RuolanColors.of(context).onSurface,
           height: 1.5,
         ),
       );
@@ -122,55 +123,55 @@ class ChatBubble extends StatelessWidget {
     return MarkdownBody(
       data: content,
       styleSheet: MarkdownStyleSheet(
-        p: const TextStyle(fontSize: 15, color: Color(0xFF3C3C3C), height: 1.5),
-        strong: const TextStyle(fontSize: 15, color: Color(0xFF3C3C3C), fontWeight: FontWeight.bold, height: 1.5),
-        em: const TextStyle(fontSize: 15, color: Color(0xFF3C3C3C), fontStyle: FontStyle.italic, height: 1.5),
-        listBullet: const TextStyle(fontSize: 15, color: Color(0xFF3C3C3C), height: 1.5),
-        h1: const TextStyle(fontSize: 20, color: Color(0xFF3C3C3C), fontWeight: FontWeight.bold),
-        h2: const TextStyle(fontSize: 18, color: Color(0xFF3C3C3C), fontWeight: FontWeight.bold),
-        h3: const TextStyle(fontSize: 16, color: Color(0xFF3C3C3C), fontWeight: FontWeight.bold),
-        blockquote: const TextStyle(fontSize: 15, color: Color(0xFF6B5B4B), height: 1.5),
-        code: const TextStyle(fontSize: 13, color: Color(0xFF3C3C3C), backgroundColor: Color(0xFFF3EFEA), fontFamily: 'monospace'),
+        p: TextStyle(fontSize: 15, color: RuolanColors.of(context).onSurface, height: 1.5),
+        strong: TextStyle(fontSize: 15, color: RuolanColors.of(context).onSurface, fontWeight: FontWeight.bold, height: 1.5),
+        em: TextStyle(fontSize: 15, color: RuolanColors.of(context).onSurface, fontStyle: FontStyle.italic, height: 1.5),
+        listBullet: TextStyle(fontSize: 15, color: RuolanColors.of(context).onSurface, height: 1.5),
+        h1: TextStyle(fontSize: 20, color: RuolanColors.of(context).onSurface, fontWeight: FontWeight.bold),
+        h2: TextStyle(fontSize: 18, color: RuolanColors.of(context).onSurface, fontWeight: FontWeight.bold),
+        h3: TextStyle(fontSize: 16, color: RuolanColors.of(context).onSurface, fontWeight: FontWeight.bold),
+        blockquote: TextStyle(fontSize: 15, color: RuolanColors.of(context).blockquote, height: 1.5),
+        code: TextStyle(fontSize: 13, color: RuolanColors.of(context).onSurface, backgroundColor: RuolanColors.of(context).codeBg, fontFamily: 'monospace'),
         codeblockDecoration: BoxDecoration(
-          color: const Color(0xFFF3EFEA),
+          color: RuolanColors.of(context).codeBg,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFE0D5CC)),
+          border: Border.all(color: RuolanColors.of(context).border),
         ),
-        a: const TextStyle(fontSize: 15, color: Color(0xFF8B5E3C), decoration: TextDecoration.underline),
+        a: TextStyle(fontSize: 15, color: RuolanColors.of(context).primaryFg, decoration: TextDecoration.underline),
       ),
     );
   }
 
-  Widget _buildAction(String label, IconData icon, VoidCallback onTap) {
+  Widget _buildAction(BuildContext context, String label, IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isUser ? Colors.white.withValues(alpha: 0.18) : const Color(0xFFF3E9E1),
+          color: isUser ? Colors.white.withValues(alpha: 0.18) : RuolanColors.of(context).chipBg,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isUser ? Colors.white.withValues(alpha: 0.4) : const Color(0xFFE0D5CC),
+            color: isUser ? Colors.white.withValues(alpha: 0.4) : RuolanColors.of(context).border,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 13, color: isUser ? Colors.white : const Color(0xFF8B5E3C)),
+            Icon(icon, size: 13, color: isUser ? Colors.white : RuolanColors.of(context).primaryFg),
             const SizedBox(width: 4),
             Text(label,
                 style: TextStyle(
-                    fontSize: 12, color: isUser ? Colors.white : const Color(0xFF8B5E3C))),
+                    fontSize: 12, color: isUser ? Colors.white : RuolanColors.of(context).primaryFg)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAvatar() {
+  Widget _buildAvatar(BuildContext context) {
     return CircleAvatar(
       radius: 16,
-      backgroundColor: isUser ? const Color(0xFF6D9EEB) : const Color(0xFFE8C4A8),
+      backgroundColor: isUser ? RuolanColors.of(context).avatarUser : RuolanColors.of(context).avatarAssistant,
       child: Icon(
         isUser ? Icons.person : Icons.auto_awesome,
         size: 18,

@@ -1,6 +1,8 @@
+import '../theme/ruolan_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
+import '../providers/theme_provider.dart';
 import '../providers/chat_provider.dart';
 import '../models/agent_profile.dart';
 import '../config/inference_settings.dart';
@@ -12,18 +14,19 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F4),
+      backgroundColor: RuolanColors.of(context).background,
       appBar: AppBar(
-        title: const Text('智能体设置', style: TextStyle(color: Color(0xFF5C3D2E))),
+        title: Text('智能体设置', style: TextStyle(color: RuolanColors.of(context).onSurfaceStrong)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF8B5E3C)),
+        iconTheme: IconThemeData(color: RuolanColors.of(context).primaryFg),
       ),
       body: Consumer<SettingsProvider>(
         builder: (context, settings, _) {
           return Column(
             children: [
               _RoleManagerBar(settings: settings),
+              const _ThemeSelector(),
               Expanded(
                 child: SettingsForm(
                   // 按激活角色 id 重建表单，切换角色时即时载入对应配置。
@@ -34,9 +37,9 @@ class SettingsScreen extends StatelessWidget {
                     settings.updateActive(profile);
                     context.read<ChatProvider>().clearChat();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('设置已保存，对话已重置'),
-                        backgroundColor: Color(0xFF8B5E3C),
+                      SnackBar(
+                        content: const Text('设置已保存，对话已重置'),
+                        backgroundColor: RuolanColors.of(context).primaryFg,
                       ),
                     );
                     Navigator.of(context).pop();
@@ -64,15 +67,15 @@ class _RoleManagerBar extends StatelessWidget {
     final profiles = settings.profiles;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: const BoxDecoration(
-        color: Color(0xFFF3E9E1),
-        border: Border(bottom: BorderSide(color: Color(0xFFE0D5CC), width: 0.5)),
+      decoration: BoxDecoration(
+        color: RuolanColors.of(context).chipBg,
+        border: Border(bottom: BorderSide(color: RuolanColors.of(context).border, width: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('角色',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF5C3D2E))),
+          Text('角色',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: RuolanColors.of(context).onSurfaceStrong)),
           const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -88,16 +91,16 @@ class _RoleManagerBar extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
-                          color: active ? const Color(0xFF8B5E3C) : Colors.white,
+                          color: active ? RuolanColors.of(context).primaryFg : RuolanColors.of(context).surface,
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(
-                            color: active ? const Color(0xFF8B5E3C) : const Color(0xFFE0D5CC),
+                            color: active ? RuolanColors.of(context).primaryFg : RuolanColors.of(context).border,
                           ),
                         ),
                         child: Text(p.name,
                             style: TextStyle(
                               fontSize: 13,
-                              color: active ? Colors.white : const Color(0xFF8B5E3C),
+                              color: active ? Colors.white : RuolanColors.of(context).primaryFg,
                             )),
                       ),
                     ),
@@ -108,19 +111,19 @@ class _RoleManagerBar extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: RuolanColors.of(context).surface,
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFFC9A88C)),
+                      border: Border.all(color: RuolanColors.of(context).primaryFg),
                     ),
-                    child: const Icon(Icons.add, size: 16, color: Color(0xFF8B5E3C)),
+                    child: Icon(Icons.add, size: 16, color: RuolanColors.of(context).primaryFg),
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 4),
-          const Text('点击切换角色 · 长按删除（仅 1 个时不可删）',
-              style: TextStyle(fontSize: 11, color: Colors.grey)),
+          Text('点击切换角色 · 长按删除（仅 1 个时不可删）',
+              style: TextStyle(fontSize: 11, color: RuolanColors.of(context).onSurfaceMuted)),
         ],
       ),
     );
@@ -144,6 +147,48 @@ class _RoleManagerBar extends StatelessWidget {
               settings.deleteProfile(p.id);
             },
             child: const Text('删除', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 外观主题切换：跟随系统 / 浅色 / 深色（REQ-UX-001）。
+class _ThemeSelector extends StatelessWidget {
+  const _ThemeSelector();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('外观',
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: RuolanColors.of(context).onSurfaceStrong)),
+          const SizedBox(height: 8),
+          SegmentedButton<ThemeMode>(
+            selected: {theme.mode},
+            onSelectionChanged: (set) => theme.setMode(set.first),
+            segments: const [
+              ButtonSegment(
+                  value: ThemeMode.system,
+                  label: Text('跟随系统'),
+                  icon: Icon(Icons.brightness_auto)),
+              ButtonSegment(
+                  value: ThemeMode.light,
+                  label: Text('浅色'),
+                  icon: Icon(Icons.light_mode)),
+              ButtonSegment(
+                  value: ThemeMode.dark,
+                  label: Text('深色'),
+                  icon: Icon(Icons.dark_mode)),
+            ],
           ),
         ],
       ),

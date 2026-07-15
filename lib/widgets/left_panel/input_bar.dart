@@ -1,3 +1,4 @@
+import '../../theme/ruolan_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/chat_provider.dart';
@@ -52,14 +53,14 @@ class _InputBarState extends State<InputBar> {
     final hasText = _controller.text.trim().isNotEmpty;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(color: Colors.white, boxShadow: [
+      decoration: BoxDecoration(color: RuolanColors.of(context).surface, boxShadow: [
         BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, -2))]),
       child: SafeArea(top: false, child: Row(children: [
         GestureDetector(
           onTap: _voiceInput,
           child: Container(
             padding: const EdgeInsets.all(10),
-            child: const Icon(Icons.mic, color: Color(0xFF8B5E3C), size: 26),
+            child: Icon(Icons.mic, color: RuolanColors.of(context).primaryFg, size: 26),
           ),
         ),
         const SizedBox(width: 4),
@@ -71,7 +72,7 @@ class _InputBarState extends State<InputBar> {
             style: const TextStyle(fontSize: 15),
             decoration: InputDecoration(
               hintText: '说点什么吧~', hintStyle: TextStyle(color: Colors.grey[400]),
-              filled: true, fillColor: const Color(0xFFF5F0EC),
+              filled: true, fillColor: RuolanColors.of(context).surfaceVariant,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
@@ -85,7 +86,7 @@ class _InputBarState extends State<InputBar> {
           child: Container(
             width: 44, height: 44,
             decoration: BoxDecoration(shape: BoxShape.circle,
-              color: chat.isLoading ? Colors.red : (hasText ? const Color(0xFF8B5E3C) : const Color(0xFFD5C4B5))),
+              color: chat.isLoading ? Colors.red : (hasText ? RuolanColors.of(context).primaryFg : RuolanColors.of(context).border)),
             child: Icon(chat.isLoading ? Icons.stop : Icons.send_rounded, color: Colors.white, size: 22),
           ),
         ),

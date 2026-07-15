@@ -1,3 +1,4 @@
+import '../theme/ruolan_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/model_info.dart';
@@ -52,19 +53,19 @@ class _ModelManagerScreenState extends State<ModelManagerScreen> {
     });
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(ok ? '已切换模型：${model.name}，已热重载' : '切换失败：${model.name} 加载错误'),
-      backgroundColor: ok ? const Color(0xFF8B5E3C) : Colors.redAccent,
+      backgroundColor: ok ? RuolanColors.of(context).primaryFg : Colors.redAccent,
     ));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F4),
+      backgroundColor: RuolanColors.of(context).background,
       appBar: AppBar(
-        title: const Text('模型管理', style: TextStyle(color: Color(0xFF5C3D2E))),
+        title: Text('模型管理', style: TextStyle(color: RuolanColors.of(context).onSurfaceStrong)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF8B5E3C)),
+        iconTheme: IconThemeData(color: RuolanColors.of(context).primaryFg),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -74,7 +75,7 @@ class _ModelManagerScreenState extends State<ModelManagerScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF8B5E3C)))
+          ? Center(child: CircularProgressIndicator(color: RuolanColors.of(context).primaryFg))
           : _buildBody(),
     );
   }
@@ -85,18 +86,18 @@ class _ModelManagerScreenState extends State<ModelManagerScreen> {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        const Text('选择本地模型文件（.gguf）进行切换，切换后即时热重载，无需重启应用。',
-          style: TextStyle(fontSize: 13, color: Color(0xFF8B5E3C))),
+        Text('选择本地模型文件（.gguf）进行切换，切换后即时热重载，无需重启应用。',
+          style: TextStyle(fontSize: 13, color: RuolanColors.of(context).primaryFg)),
         const SizedBox(height: 8),
-        const Text('模型目录：应用内部 files/models 或 /sdcard/models',
-          style: TextStyle(fontSize: 12, color: Colors.grey)),
+        Text('模型目录：应用内部 files/models 或 /sdcard/models',
+          style: TextStyle(fontSize: 12, color: RuolanColors.of(context).onSurfaceMuted)),
         const SizedBox(height: 16),
         if (!selectedExists && _selectedPath != null)
           Container(
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFFBEAEA),
+              color: RuolanColors.of(context).errorBg,
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Text('当前选中的模型文件未找到（可能已被移除）。请选择下方模型或拷贝文件到模型目录。',
@@ -106,22 +107,22 @@ class _ModelManagerScreenState extends State<ModelManagerScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F0EC),
+              color: RuolanColors.of(context).surfaceVariant,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Column(children: [
-              Icon(Icons.folder_open_outlined, size: 40, color: Color(0xFFC9A88C)),
-              SizedBox(height: 12),
-              Text('未找到任何模型文件', style: TextStyle(fontSize: 15, color: Color(0xFF5C3D2E))),
-              SizedBox(height: 6),
+            child: Column(children: [
+              Icon(Icons.folder_open_outlined, size: 40, color: RuolanColors.of(context).primaryFg),
+              const SizedBox(height: 12),
+              Text('未找到任何模型文件', style: TextStyle(fontSize: 15, color: RuolanColors.of(context).onSurfaceStrong)),
+              const SizedBox(height: 6),
               Text('请将 .gguf 模型拷贝到：\n应用内部 files/models 或 /sdcard/models',
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.grey)),
+                textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: RuolanColors.of(context).onSurfaceMuted)),
             ]),
           )
         else
           ..._models.map((m) => _modelTile(m)),
         const SizedBox(height: 16),
-        if (_switching) const Center(child: CircularProgressIndicator(color: Color(0xFF8B5E3C))),
+        if (_switching) Center(child: CircularProgressIndicator(color: RuolanColors.of(context).primaryFg)),
       ],
     );
   }
@@ -131,23 +132,23 @@ class _ModelManagerScreenState extends State<ModelManagerScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFEFE3D8) : const Color(0xFFF5F0EC),
+        color: isSelected ? RuolanColors.of(context).surfaceSelected : RuolanColors.of(context).surfaceVariant,
         borderRadius: BorderRadius.circular(12),
         border: isSelected
-            ? Border.all(color: const Color(0xFF8B5E3C), width: 1.5)
+            ? Border.all(color: RuolanColors.of(context).primaryFg, width: 1.5)
             : null,
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Icon(
           isSelected ? Icons.check_circle : Icons.description_outlined,
-          color: isSelected ? const Color(0xFF8B5E3C) : const Color(0xFFC9A88C),
+          color: isSelected ? RuolanColors.of(context).primaryFg : RuolanColors.of(context).primaryFg,
         ),
-        title: Text(m.name, style: const TextStyle(fontSize: 15, color: Color(0xFF5C3D2E))),
-        subtitle: Text(m.subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        title: Text(m.name, style: TextStyle(fontSize: 15, color: RuolanColors.of(context).onSurfaceStrong)),
+        subtitle: Text(m.subtitle, style: TextStyle(fontSize: 12, color: RuolanColors.of(context).onSurfaceMuted)),
         trailing: isSelected
-            ? const Text('使用中', style: TextStyle(fontSize: 12, color: Color(0xFF8B5E3C)))
-            : const Text('点击切换', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            ? Text('使用中', style: TextStyle(fontSize: 12, color: RuolanColors.of(context).primaryFg))
+            : Text('点击切换', style: TextStyle(fontSize: 12, color: RuolanColors.of(context).onSurfaceMuted)),
         onTap: _switching ? null : () => _select(m),
       ),
     );

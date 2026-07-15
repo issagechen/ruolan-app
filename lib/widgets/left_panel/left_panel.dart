@@ -1,3 +1,4 @@
+import '../../theme/ruolan_colors.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,19 +16,19 @@ class LeftPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFFFAF7F4),
+      decoration: BoxDecoration(
+        color: RuolanColors.of(context).background,
       ),
-      child: const Column(
+      child: Column(
         children: [
-          TopBar(),
-          AvatarHeader(),
-          Divider(height: 1, thickness: 0.5, color: Color(0xFFE0D5CC)),
-          Expanded(child: ChatArea()),
-          _CallController(),
-          _ModelErrorBanner(),
-          _SuggestedReplies(),
-          InputBar(),
+          const TopBar(),
+          const AvatarHeader(),
+          Divider(height: 1, thickness: 0.5, color: RuolanColors.of(context).border),
+          const Expanded(child: ChatArea()),
+          const _CallController(),
+          const _ModelErrorBanner(),
+          const _SuggestedReplies(),
+          const InputBar(),
         ],
       ),
     );
@@ -167,9 +168,9 @@ class _CallControllerState extends State<_CallController> {
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: const BoxDecoration(
-            color: Color(0xFFFFF3E0),
-            border: Border(top: BorderSide(color: Color(0xFFE0D5CC), width: 0.5)),
+          decoration: BoxDecoration(
+            color: RuolanColors.of(context).accentWarm,
+            border: Border(top: BorderSide(color: RuolanColors.of(context).border, width: 0.5)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -179,7 +180,7 @@ class _CallControllerState extends State<_CallController> {
               Flexible(
                 child: Text(
                   voice.callStatusText.isNotEmpty ? voice.callStatusText : '语音通话中...',
-                  style: const TextStyle(fontSize: 14, color: Color(0xFF8B5E3C), fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 14, color: RuolanColors.of(context).primaryFg, fontWeight: FontWeight.w500),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -215,13 +216,13 @@ class _CallControllerState extends State<_CallController> {
   Widget _buildStatusIcon(CallState state) {
     switch (state) {
       case CallState.listening:
-        return const _PulsingDot(color: Color(0xFF4CAF50));
+        return _PulsingDot(color: RuolanColors.of(context).statusOk);
       case CallState.thinking:
         return const _ThinkingDots();
       case CallState.speaking:
-        return const _PulsingDot(color: Color(0xFFFF9800));
+        return _PulsingDot(color: RuolanColors.of(context).statusWarn);
       case CallState.idle:
-        return const Icon(Icons.mic, color: Color(0xFF8B5E3C), size: 20);
+        return Icon(Icons.mic, color: RuolanColors.of(context).primaryFg, size: 20);
     }
   }
 }
@@ -242,29 +243,29 @@ class _ModelErrorBanner extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFFFDECEA),
+            color: RuolanColors.of(context).errorBg,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE0A89E)),
+            border: Border.all(color: RuolanColors.of(context).errorBorder),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Icon(Icons.error_outline, color: Color(0xFFC0392B), size: 18),
+                  Icon(Icons.error_outline, color: RuolanColors.of(context).errorText, size: 18),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(chat.errorTitle ?? '出错了',
-                        style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFFC0392B))),
+                        style: TextStyle(fontWeight: FontWeight.w600, color: RuolanColors.of(context).errorText)),
                   ),
                 ],
               ),
               const SizedBox(height: 6),
-              Text(chat.errorMessage!, style: const TextStyle(fontSize: 13, color: Color(0xFF7A4A40))),
+              Text(chat.errorMessage!, style: TextStyle(fontSize: 13, color: RuolanColors.of(context).errorText2)),
               if (chat.errorDetail != null) ...[
                 const SizedBox(height: 4),
                 Text('· ${chat.errorDetail!}',
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF7A4A40))),
+                    style: TextStyle(fontSize: 12, color: RuolanColors.of(context).errorText2)),
               ],
               const SizedBox(height: 10),
               Row(
@@ -273,11 +274,11 @@ class _ModelErrorBanner extends StatelessWidget {
                   if (chat.errorCanRetry)
                     TextButton(
                       onPressed: () => chat.retry(profile: settings.profile, voice: voice),
-                      child: const Text('重试', style: TextStyle(color: Color(0xFF8B5E3C), fontWeight: FontWeight.w600)),
+                      child: Text('重试', style: TextStyle(color: RuolanColors.of(context).primaryFg, fontWeight: FontWeight.w600)),
                     ),
                   TextButton(
                     onPressed: () => chat.clearError(),
-                    child: const Text('知道了', style: TextStyle(color: Colors.grey)),
+                    child: Text('知道了', style: TextStyle(color: RuolanColors.of(context).onSurfaceMuted)),
                   ),
                 ],
               ),
@@ -322,11 +323,11 @@ class _SuggestedReplies extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF3E9E1),
+                            color: RuolanColors.of(context).chipBg,
                             borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: const Color(0xFFE0D5CC)),
+                            border: Border.all(color: RuolanColors.of(context).border),
                           ),
-                          child: Text(r, style: const TextStyle(fontSize: 13, color: Color(0xFF8B5E3C))),
+                          child: Text(r, style: TextStyle(fontSize: 13, color: RuolanColors.of(context).primaryFg)),
                         ),
                       ),
                     );
@@ -420,7 +421,7 @@ class _ThinkingDotsState extends State<_ThinkingDots> with SingleTickerProviderS
               margin: const EdgeInsets.symmetric(horizontal: 2),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF8B5E3C).withValues(alpha: 0.3 + opacity * 0.7),
+                color: RuolanColors.of(context).primaryFg.withValues(alpha: 0.3 + opacity * 0.7),
               ),
             );
           }),

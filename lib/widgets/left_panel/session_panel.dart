@@ -1,3 +1,4 @@
+import '../../theme/ruolan_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/session.dart';
@@ -6,7 +7,7 @@ import '../../providers/chat_provider.dart';
 void showSessionPanel(BuildContext context) {
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFFFAF7F4),
+    backgroundColor: RuolanColors.of(context).background,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
@@ -26,18 +27,18 @@ class _SessionPanel extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 14),
-              const Text('会话',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF5C3D2E))),
+              Text('会话',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: RuolanColors.of(context).onSurfaceStrong)),
               const SizedBox(height: 6),
               ListTile(
-                leading: const Icon(Icons.add, color: Color(0xFF8B5E3C)),
+                leading: Icon(Icons.add, color: RuolanColors.of(context).primaryFg),
                 title: const Text('新会话'),
                 onTap: () {
                   chat.newSession();
                   Navigator.pop(context);
                 },
               ),
-              const Divider(height: 1, thickness: 0.5, color: Color(0xFFE0D5CC)),
+              Divider(height: 1, thickness: 0.5, color: RuolanColors.of(context).border),
               ...chat.sessions.map((s) => _tile(context, chat, s)),
               const SizedBox(height: 12),
             ],
@@ -51,12 +52,12 @@ class _SessionPanel extends StatelessWidget {
     final isCurrent = s.id == chat.currentSessionId;
     return ListTile(
       selected: isCurrent,
-      selectedTileColor: const Color(0xFFF0E4DA),
+      selectedTileColor: RuolanColors.of(context).surfaceSelected,
       leading: Icon(
         isCurrent ? Icons.chat_bubble : Icons.chat_bubble_outline,
-        color: const Color(0xFF8B5E3C),
+        color: RuolanColors.of(context).primaryFg,
       ),
-      title: Text(s.title, style: const TextStyle(color: Color(0xFF5C3D2E))),
+      title: Text(s.title, style: TextStyle(color: RuolanColors.of(context).onSurfaceStrong)),
       onTap: () {
         chat.switchSession(s.id);
         Navigator.pop(context);
@@ -65,7 +66,7 @@ class _SessionPanel extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.edit, size: 18, color: Colors.grey),
+            icon: Icon(Icons.edit, size: 18, color: RuolanColors.of(context).onSurfaceMuted),
             onPressed: () => _rename(context, chat, s),
           ),
           IconButton(

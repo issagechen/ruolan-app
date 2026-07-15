@@ -1,4 +1,5 @@
-﻿import 'dart:convert';
+import 'dart:convert';
+import '../../theme/ruolan_colors.dart';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -23,18 +24,18 @@ class AvatarHeader extends StatelessWidget {
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF0E0D6),
+                    color: RuolanColors.of(context).surfaceVariant2,
                     borderRadius: BorderRadius.circular(40),
                   ),
                   child: (profile.avatarPath != null && profile.avatarPath!.isNotEmpty)
                       ? _buildAvatarImage(profile.avatarPath!)
-                      : _defaultAvatar(),
+                      : _defaultAvatar(context),
                 ),
               ),
               const SizedBox(height: 10),
               Text(
                 profile.name,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: Color(0xFF5C3D2E)),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: RuolanColors.of(context).onSurfaceStrong),
               ),
               if (profile.introduction.isNotEmpty)
                 Padding(
@@ -59,12 +60,12 @@ class AvatarHeader extends StatelessWidget {
       return Image.memory(Uint8List.fromList(bytes), fit: BoxFit.cover);
     }
     if (kIsWeb) {
-      return Image.network(path, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _defaultAvatar());
+      return Image.network(path, fit: BoxFit.cover, errorBuilder: (ctx, __, ___) => _defaultAvatar(ctx));
     }
-    return Image.asset(path, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _defaultAvatar());
+    return Image.asset(path, fit: BoxFit.cover, errorBuilder: (ctx, __, ___) => _defaultAvatar(ctx));
   }
 
-  Widget _defaultAvatar() {
-    return const Icon(Icons.auto_awesome, size: 36, color: Color(0xFFC9A88C));
+  Widget _defaultAvatar(BuildContext context) {
+    return Icon(Icons.auto_awesome, size: 36, color: RuolanColors.of(context).primaryFg);
   }
 }

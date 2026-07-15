@@ -1,4 +1,5 @@
-﻿import 'dart:convert';
+import 'dart:convert';
+import '../../theme/ruolan_colors.dart';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -14,16 +15,16 @@ class RightPanel extends StatelessWidget {
       builder: (context, settings, _) {
         final imagePath = settings.profile.characterImagePath;
         return Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0xFFFDF4F0), Color(0xFFF8E8E0)],
+              colors: [RuolanColors.of(context).surface, RuolanColors.of(context).surface],
             ),
           ),
           child: (imagePath != null && imagePath.isNotEmpty)
               ? _buildImage(imagePath)
-              : _buildPlaceholder(),
+              : _buildPlaceholder(context),
         );
       },
     );
@@ -38,7 +39,7 @@ class RightPanel extends StatelessWidget {
           fit: BoxFit.cover,
           width: double.infinity,
           height: double.infinity,
-          errorBuilder: (_, __, ___) => _buildPlaceholder(),
+          errorBuilder: (ctx, __, ___) => _buildPlaceholder(ctx),
         ),
       );
     }
@@ -49,7 +50,7 @@ class RightPanel extends StatelessWidget {
           fit: BoxFit.cover,
           width: double.infinity,
           height: double.infinity,
-          errorBuilder: (_, __, ___) => _buildPlaceholder(),
+          errorBuilder: (ctx, __, ___) => _buildPlaceholder(ctx),
         ),
       );
     }
@@ -59,19 +60,19 @@ class RightPanel extends StatelessWidget {
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
-        errorBuilder: (_, __, ___) => _buildPlaceholder(),
+        errorBuilder: (ctx, __, ___) => _buildPlaceholder(ctx),
       ),
     );
   }
 
-  Widget _buildPlaceholder() {
-    return const Center(
+  Widget _buildPlaceholder(BuildContext context) {
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.person_outline, size: 80, color: Color(0xFFC9A88C)),
-          SizedBox(height: 12),
-          Text('若澜', style: TextStyle(fontSize: 20, color: Color(0xFF8B5E3C), fontWeight: FontWeight.w300)),
+          Icon(Icons.person_outline, size: 80, color: RuolanColors.of(context).primaryFg),
+          const SizedBox(height: 12),
+          Text('若澜', style: TextStyle(fontSize: 20, color: RuolanColors.of(context).primaryFg, fontWeight: FontWeight.w300)),
         ],
       ),
     );

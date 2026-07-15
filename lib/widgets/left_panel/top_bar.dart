@@ -1,3 +1,4 @@
+import '../../theme/ruolan_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/voice_provider.dart';
@@ -17,7 +18,7 @@ class TopBar extends StatelessWidget {
             onTap: () => showSessionPanel(context),
             child: Container(
               padding: const EdgeInsets.all(8),
-              child: const Icon(Icons.forum_outlined, color: Color(0xFF8B5E3C), size: 24),
+              child: Icon(Icons.forum_outlined, color: RuolanColors.of(context).primaryFg, size: 24),
             ),
           ),
           GestureDetector(
@@ -28,7 +29,7 @@ class TopBar extends StatelessWidget {
             },
             child: Container(
               padding: const EdgeInsets.all(8),
-              child: const Icon(Icons.menu, color: Color(0xFF8B5E3C), size: 28),
+              child: Icon(Icons.menu, color: RuolanColors.of(context).primaryFg, size: 28),
             ),
           ),
           const Spacer(),
@@ -40,9 +41,9 @@ class TopBar extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 8),
                 child: Text(
                   voice.callStatusText,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: Color(0xFF8B5E3C),
+                    color: RuolanColors.of(context).primaryFg,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -65,13 +66,13 @@ class TopBar extends StatelessWidget {
                   padding: const EdgeInsets.all(8),
                   decoration: voice.isInCallMode
                       ? BoxDecoration(
-                          color: const Color(0xFFE57373).withValues(alpha: 0.2),
+                          color: RuolanColors.of(context).errorText.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         )
                       : null,
                   child: Icon(
                     voice.isInCallMode ? Icons.call_end : Icons.phone,
-                    color: voice.isInCallMode ? Colors.red : const Color(0xFF8B5E3C),
+                    color: voice.isInCallMode ? Colors.red : RuolanColors.of(context).primaryFg,
                     size: 24,
                   ),
                 );
@@ -89,7 +90,7 @@ class TopBar extends StatelessWidget {
                   padding: const EdgeInsets.all(8),
                   child: Icon(
                     voice.isSpeakerOn ? Icons.volume_up : Icons.volume_off,
-                    color: voice.isSpeakerOn ? const Color(0xFF8B5E3C) : Colors.grey,
+                    color: voice.isSpeakerOn ? RuolanColors.of(context).primaryFg : RuolanColors.of(context).onSurfaceMuted,
                     size: 24,
                   ),
                 );
