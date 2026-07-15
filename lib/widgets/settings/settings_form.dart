@@ -107,6 +107,7 @@ class _SettingsFormState extends State<SettingsForm> {
 
   Future<void> _save() async {
     final profile = AgentProfile(
+      id: widget.initialProfile.id,
       name: _nameCtrl.text.trim().isEmpty ? '若澜' : _nameCtrl.text.trim(),
       personaDescription: _descCtrl.text.trim(),
       voice: _voiceCtrl.text.trim().isEmpty ? '默认' : _voiceCtrl.text.trim(),
