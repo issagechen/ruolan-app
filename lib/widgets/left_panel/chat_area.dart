@@ -15,6 +15,7 @@ class ChatArea extends StatelessWidget {
         final messages = chat.messages;
         final hasStreaming = chat.isLoading && chat.streamingContent.isNotEmpty;
         final showGreeting = messages.isEmpty && !hasStreaming;
+        final lastUserIndex = messages.lastIndexWhere((m) => m.role == 'user');
 
         return Scrollbar(
           child: ListView.builder(
@@ -37,10 +38,16 @@ class ChatArea extends StatelessWidget {
                 );
               }
               final msg = messages[msgIndex];
+              final isLastUser = msg.role == 'user' && msgIndex == lastUserIndex;
+              final onEdit = (!chat.isLoading && isLastUser) ? () => chat.editLastUser() : null;
+              final onResend = (isLastUser && chat.canResend) ? () => chat.retry(profile: settings.profile) : null;
               return ChatBubble(
                 content: msg.content,
                 isUser: msg.role == 'user',
                 timestamp: msg.timestamp,
+                onEdit: onEdit,
+                onResend: onResend,
+                isFailed: msg.role == 'user' && isLastUser && chat.canResend,
               );
             },
           ),

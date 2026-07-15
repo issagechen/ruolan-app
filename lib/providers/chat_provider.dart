@@ -19,6 +19,14 @@ class ChatProvider extends ChangeNotifier {
   // 防止同一会话并发进入生成（主回复 + 摘要共用单模型，避免 token 流混淆）。
   bool _busy = false;
 
+  // 生成中断控制：持有当前流的订阅与完成器，供 stop() 取消（REQ-CHAT-008）。
+  StreamSubscription<String>? _sub;
+  Completer<void>? _genCompleter;
+  bool _stopRequested = false;
+
+  // 编辑上一条：由气泡触发，把被编辑消息原文回填输入框（InputBar 注册该回调）。
+  void Function(String)? onRequestEdit;
+
   // 多会话：当前会话 id 与会话列表
   String _currentSessionId = StorageService.kDefaultSessionId;
   final List<SessionMeta> _sessions = [];
@@ -40,6 +48,13 @@ class ChatProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   String? get errorDetail => _errorDetail;
   bool get errorCanRetry => _errorCanRetry;
+
+  /// 失败消息可重发：存在错误态且最后一条为用户消息（助手回复未完成，REQ-CHAT-008）。
+  bool get canResend =>
+      _errorTitle != null &&
+      _messages.isNotEmpty &&
+      _messages.last.role == 'user' &&
+      !_isLoading;
 
   Future<void> loadHistory() async {
     try {
@@ -83,6 +98,34 @@ class ChatProvider extends ChangeNotifier {
     } finally {
       _busy = false;
     }
+  }
+
+  /// 立即停止当前生成（REQ-CHAT-008）：解除 _generate 的 await 并通知底层停止推理，
+  /// 已生成的文本会作为助手消息保留。
+  Future<void> stop() async {
+    if (!_isLoading) return;
+    _stopRequested = true;
+    final sub = _sub;
+    _genCompleter?.complete();
+    await _chatService.stop();
+    await sub?.cancel();
+  }
+
+  /// 编辑上一条用户消息（REQ-CHAT-008）：撤销该轮（删除该用户消息及其后的助手回复），
+  /// 并把原文回填输入框供修改后重新发送。
+  void editLastUser() {
+    if (_isLoading || _busy) return;
+    final idx = _messages.lastIndexWhere((m) => m.role == 'user');
+    if (idx == -1) return;
+    final content = _messages[idx].content;
+    for (int i = _messages.length - 1; i >= idx; i--) {
+      final m = _messages[i];
+      _messages.removeAt(i);
+      StorageService.deleteMessage(m.id).catchError((_) => 0);
+    }
+    _clearError();
+    onRequestEdit?.call(content);
+    _safeNotify();
   }
 
   /// 新建会话并切换。
@@ -156,6 +199,7 @@ class ChatProvider extends ChangeNotifier {
   Future<void> _generate(AgentProfile profile, {VoiceProvider? voice}) async {
     _isLoading = true;
     _streamingContent = '';
+    _stopRequested = false;
     _clearError();
     _safeNotify();
 
@@ -163,15 +207,44 @@ class ChatProvider extends ChangeNotifier {
     final buffer = StringBuffer();
     bool errored = false;
 
-    try {
-      await for (final chunk in _chatService.sendMessageStream(apiMessages)) {
+    final completer = Completer<void>();
+    _genCompleter = completer;
+    final sub = _chatService.sendMessageStream(apiMessages).listen(
+      (chunk) {
         buffer.write(chunk);
         _streamingContent = buffer.toString();
         _safeNotify();
+      },
+      onError: (e) {
+        errored = true;
+        _setErrorFromException(e);
+      },
+      onDone: () {
+        if (!completer.isCompleted) completer.complete();
+      },
+      cancelOnError: false,
+    );
+    _sub = sub;
+
+    await completer.future;
+
+    _sub = null;
+    _genCompleter = null;
+
+    // 用户主动停止：保留已生成部分作为助手消息，立即结束（REQ-CHAT-008）。
+    if (_stopRequested) {
+      _stopRequested = false;
+      _isLoading = false;
+      final text = buffer.toString();
+      if (text.isNotEmpty) {
+        final msg = Message(role: 'assistant', content: text, sessionId: _currentSessionId);
+        _messages.add(msg);
+        _saveMsgSafe(msg);
+        try { await StorageService.touchSession(_currentSessionId); } catch (_) {}
       }
-    } catch (e) {
-      errored = true;
-      _setErrorFromException(e);
+      _streamingContent = '';
+      _safeNotify();
+      return;
     }
 
     final text = buffer.toString();

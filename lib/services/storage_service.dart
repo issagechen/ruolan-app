@@ -112,6 +112,12 @@ class StorageService {
     await db.delete('messages', where: 'session_id = ?', whereArgs: [sessionId]);
   }
 
+  /// 按主键删除单条消息（编辑上一条时撤销该轮用，REQ-CHAT-008）。
+  static Future<void> deleteMessage(int? id) async {
+    if (id == null) return;
+    await db.delete('messages', where: 'id = ?', whereArgs: [id]);
+  }
+
   // ---- sessions ----
   static Future<void> createSession(SessionMeta session) async {
     await db.insert('sessions', session.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
