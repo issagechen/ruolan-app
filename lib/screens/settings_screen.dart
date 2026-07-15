@@ -7,6 +7,7 @@ import '../providers/chat_provider.dart';
 import '../models/agent_profile.dart';
 import '../config/inference_settings.dart';
 import '../widgets/settings/settings_form.dart';
+import 'about_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -27,6 +28,7 @@ class SettingsScreen extends StatelessWidget {
             children: [
               _RoleManagerBar(settings: settings),
               const _ThemeSelector(),
+              const _AboutEntry(),
               Expanded(
                 child: SettingsForm(
                   // 按激活角色 id 重建表单，切换角色时即时载入对应配置。
@@ -191,6 +193,30 @@ class _ThemeSelector extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 关于与诊断入口（REQ-SET-002）。
+class _AboutEntry extends StatelessWidget {
+  const _AboutEntry();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(Icons.info_outline, color: RuolanColors.of(context).primaryFg),
+        title: Text('关于与诊断',
+            style: TextStyle(fontSize: 15, color: RuolanColors.of(context).onSurfaceStrong)),
+        subtitle: Text('版本、运行模式、模型与推理参数',
+            style: TextStyle(fontSize: 12, color: RuolanColors.of(context).onSurfaceMuted)),
+        trailing: Icon(Icons.chevron_right, color: RuolanColors.of(context).primaryFg),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const AboutScreen()),
+        ),
       ),
     );
   }

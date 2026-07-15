@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>若澜 Ruolan · UI 预览</title>
+<style>
+  :root {
+    /* 浅色（来自 lib/theme/ruolan_colors.dart） */
+    --background:#FAF7F4; --surface:#FFFFFF; --surface-variant:#F5F0EC;
+    --surface-variant2:#F0E0D6; --chip-bg:#F3E9E1; --surface-selected:#EFE3D8;
+    --primary:#8B5E3C; --primary-fg:#8B5E3C; --on-surface-strong:#5C3D2E;
+    --on-surface:#3C3C3C; --on-surface-muted:#9A8F86; --border:#E0D5CC;
+    --code-bg:#F3EFEA; --accent-warm:#FFF3E0; --avatar-user:#6D9EEB;
+    --avatar-assistant:#E8C4A8; --error-text:#C0392B; --error-bg:#FDECEA;
+    --error-border:#E0A89E; --status-ok:#4CAF50; --status-warn:#FF9800;
+    --shadow:0 2px 8px rgba(0,0,0,.06);
+  }
+  [data-theme="dark"] {
+    --background:#14110E; --surface:#2A2521; --surface-variant:#322C27;
+    --surface-variant2:#2E2620; --chip-bg:#332B25; --surface-selected:#3D342C;
+    --primary:#8B5E3C; --primary-fg:#C9A88C; --on-surface-strong:#E8D9CC;
+    --on-surface:#EDE6DF; --on-surface-muted:#9A8F86; --border:#3D352E;
+    --code-bg:#2E2A26; --accent-warm:#2E2620; --avatar-user:#6D9EEB;
+    --avatar-assistant:#4A3B30; --error-text:#FF8A80; --error-bg:#3A2420;
+    --error-border:#5A3530; --status-ok:#81C784; --status-warn:#FB8C00;
+    --shadow:0 2px 8px rgba(0,0,0,.4);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--background); color:var(--on-surface); padding:24px;
+    transition:background .3s, color .3s;
+  }
+  .wrap { max-width:1180px; margin:0 auto; }
+  .preview-bar {
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:12px 16px; margin-bottom:18px; box-shadow:var(--shadow);
+  }
+  .preview-bar h1 { font-size:16px; color:var(--on-surface-strong); margin-right:auto; }
+  .preview-bar .grp { display:flex; gap:6px; align-items:center; }
+  .preview-bar .lbl { font-size:12px; color:var(--on-surface-muted); }
+  .tbtn {
+    border:1px solid var(--border); background:var(--surface-variant);
+    color:var(--on-surface); padding:6px 12px; border-radius:18px; cursor:pointer;
+    font-size:13px; transition:.15s;
+  }
+  .tbtn:hover { border-color:var(--primary-fg); }
+  .tbtn.active { background:var(--primary-fg); color:#fff; border-color:var(--primary-fg); }
+
+  /* 设备框 */
+  .device {
+    background:var(--surface); border:1px solid var(--border); border-radius:18px;
+    box-shadow:var(--shadow); overflow:hidden;
+  }
+  .topbar {
+    display:flex; align-items:center; gap:6px; padding:10px 14px;
+    border-bottom:1px solid var(--border); background:var(--background);
+  }
+  .ic { width:38px; height:38px; display:flex; align-items:center; justify-content:center;
+        border-radius:10px; cursor:pointer; color:var(--primary-fg); font-size:20px; }
+  .ic:hover { background:var(--surface-variant); }
+  .ic.danger { color:var(--error-text); }
+  .call-status { font-size:13px; color:var(--primary-fg); font-weight:500; padding-right:8px; }
+  .spacer { flex:1; }
+
+  .row { display:flex; align-items:stretch; min-height:560px; }
+  .left { flex:6; display:flex; flex-direction:column; border-right:1px solid var(--border);
+          background:var(--background); }
+  .right { flex:4; padding:18px; background:var(--surface); }
+
+  /* 对话区 */
+  .chat { flex:1; overflow-y:auto; padding:18px; display:flex; flex-direction:column; gap:14px; }
+  .bubble { max-width:78%; padding:10px 14px; border-radius:16px; font-size:14px; line-height:1.6;
+            box-shadow:var(--shadow); }
+  .bubble.assistant { background:var(--surface); color:var(--on-surface); align-self:flex-start;
+            border-bottom-left-radius:4px; }
+  .bubble.user { background:var(--primary-fg); color:#fff; align-self:flex-end;
+            border-bottom-right-radius:4px; }
+  .bubble.opening { background:var(--accent-warm); color:var(--on-surface-strong);
+            align-self:flex-start; font-style:italic; border-bottom-left-radius:4px; }
+  .bubble code { background:var(--code-bg); padding:1px 5px; border-radius:5px;
+            font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12.5px; }
+  .bubble pre { background:var(--code-bg); padding:10px; border-radius:8px; overflow-x:auto;
+            margin:6px 0; font-size:12.5px; }
+  .bubble ul { margin:4px 0 4px 18px; }
+  .bubble strong { color:var(--on-surface-strong); }
+
+  /* 建议回复 */
+  .suggest { display:flex; gap:8px; padding:0 18px 10px; flex-wrap:wrap; }
+  .chip { background:var(--chip-bg); color:var(--primary-fg); padding:7px 13px;
+          border-radius:16px; font-size:13px; border:1px solid transparent; cursor:pointer; }
+  .chip:hover { border-color:var(--primary-fg); }
+
+  /* 输入栏 */
+  .inputbar { display:flex; align-items:center; gap:10px; padding:12px 16px;
+              border-top:1px solid var(--border); background:var(--surface); }
+  .inputbar input { flex:1; border:none; background:var(--surface-variant); color:var(--on-surface);
+              padding:11px 14px; border-radius:22px; font-size:14px; outline:none; }
+  .send { background:var(--primary-fg); color:#fff; width:42px; height:42px; border-radius:50%;
+          display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:18px; }
+
+  /* 右栏形象 */
+  .avatar-head { display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .avatar-img { width:110px; height:110px; border-radius:24px; background:var(--surface-variant2);
+          display:flex; align-items:center; justify-content:center; font-size:40px; color:var(--primary-fg); }
+  .avatar-name { font-size:18px; font-weight:600; color:var(--on-surface-strong); }
+  .avatar-intro { font-size:13px; color:var(--on-surface-muted); text-align:center; }
+  .char-img { margin-top:18px; width:100%; height:200px; border-radius:16px;
+          background:var(--surface-variant); display:flex; align-items:center; justify-content:center;
+          color:var(--on-surface-muted); font-size:13px; }
+
+  /* 设置页 */
+  .role-bar { padding:12px 16px; background:var(--chip-bg); border-bottom:1px solid var(--border); }
+  .role-bar .ttl { font-size:13px; font-weight:600; color:var(--on-surface-strong); margin-bottom:8px; }
+  .role-chips { display:flex; gap:8px; overflow-x:auto; }
+  .role-chip { padding:7px 14px; border-radius:18px; font-size:13px; white-space:nowrap;
+          border:1px solid var(--border); background:var(--surface); color:var(--primary-fg); cursor:pointer; }
+  .role-chip.active { background:var(--primary-fg); color:#fff; border-color:var(--primary-fg); }
+  .role-add { padding:7px 12px; border-radius:18px; border:1px solid var(--primary-fg);
+          background:var(--surface); color:var(--primary-fg); cursor:pointer; }
+  .sec { padding:16px; border-bottom:1px solid var(--border); }
+  .sec h3 { font-size:13px; font-weight:600; color:var(--primary-fg); margin-bottom:10px; }
+  .seg { display:inline-flex; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .seg div { padding:8px 16px; font-size:13px; cursor:pointer; color:var(--on-surface); }
+  .seg div.on { background:var(--primary-fg); color:#fff; }
+  .field { margin-bottom:14px; }
+  .field label { font-size:13px; color:var(--on-surface-strong); display:block; margin-bottom:6px; }
+  .field .box { background:var(--surface-variant); border:none; border-radius:10px;
+          padding:11px 14px; font-size:14px; color:var(--on-surface); width:100%; outline:none; }
+  .slider-row { display:flex; justify-content:space-between; font-size:13px; color:var(--on-surface-strong); }
+  .list-entry { display:flex; align-items:center; gap:12px; padding:14px 16px; cursor:pointer;
+          border-bottom:1px solid var(--border); }
+  .list-entry .ic2 { color:var(--primary-fg); font-size:20px; }
+  .list-entry .t { font-size:15px; color:var(--on-surface-strong); }
+  .list-entry .s { font-size:12px; color:var(--on-surface-muted); }
+  .list-entry .chev { margin-left:auto; color:var(--primary-fg); }
+  .save-btn { margin:18px 16px; background:var(--primary-fg); color:#fff; text-align:center;
+          padding:13px; border-radius:12px; font-size:16px; cursor:pointer; }
+
+  /* 关于页 */
+  .about-hero { display:flex; flex-direction:column; align-items:center; gap:10px; padding:22px; }
+  .about-logo { width:72px; height:72px; border-radius:20px; background:var(--primary-fg);
+          display:flex; align-items:center; justify-content:center; color:#fff; font-size:34px; }
+  .about-card { background:var(--surface); border:1px solid var(--border); border-radius:10px;
+          padding:12px 14px; margin:0 20px 8px; display:flex; align-items:center; gap:10px; }
+  .about-card .l { font-size:14px; color:var(--on-surface); flex:1; }
+  .about-card .v { font-size:13px; color:var(--on-surface-strong); font-weight:500; text-align:right; }
+  .about-card .ic2 { color:var(--primary-fg); font-size:18px; }
+  .gtitle { font-size:13px; font-weight:600; color:var(--primary-fg); margin:14px 20px 8px; }
+  .warn-card { background:var(--error-bg); border:1px solid var(--error-border); color:var(--error-text);
+          border-radius:10px; padding:12px; margin:0 20px 8px; font-size:13px; }
+  .info-card { background:var(--surface-variant); border-radius:10px; padding:14px;
+          margin:0 20px 16px; font-size:13px; color:var(--on-surface); line-height:1.6; }
+
+  /* 会话面板（底部抽屉） */
+  .sheet { background:var(--surface); border-top:1px solid var(--border); }
+  .sheet .head { display:flex; align-items:center; padding:14px 18px; font-weight:600;
+          color:var(--on-surface-strong); }
+  .session-item { display:flex; align-items:center; gap:12px; padding:12px 18px;
+          border-bottom:1px solid var(--border); cursor:pointer; }
+  .session-item.active { background:var(--surface-selected); }
+  .session-item .dot { width:8px; height:8px; border-radius:50%; background:var(--primary-fg); }
+  .session-item .nm { font-size:14px; color:var(--on-surface-strong); }
+  .session-item .meta { font-size:12px; color:var(--on-surface-muted); }
+  .session-item .del { margin-left:auto; color:var(--on-surface-muted); cursor:pointer; }
+
+  /* 弹窗 */
+  .modal-mask { position:absolute; inset:0; background:rgba(0,0,0,.35); display:flex;
+          align-items:center; justify-content:center; padding:24px; }
+  .modal { background:var(--surface); border-radius:16px; max-width:420px; width:100%;
+          padding:20px; box-shadow:0 10px 40px rgba(0,0,0,.3); }
+  .modal h3 { display:flex; align-items:center; gap:8px; font-size:16px; color:var(--on-surface-strong); margin-bottom:12px; }
+  .modal p { font-size:14px; color:var(--on-surface); line-height:1.6; margin-bottom:8px; }
+  .modal .warn { color:var(--error-text); }
+  .modal .acts { display:flex; justify-content:flex-end; gap:10px; margin-top:14px; }
+  .modal .acts .b { padding:9px 18px; border-radius:10px; cursor:pointer; font-size:14px; }
+  .modal .acts .cancel { color:var(--on-surface-muted); }
+  .modal .acts .ok { background:var(--primary-fg); color:#fff; }
+
+  .hint { font-size:12px; color:var(--on-surface-muted); margin-top:14px; line-height:1.6; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="preview-bar">
+    <h1>若澜 Ruolan · UI 预览（高保真原型）</h1>
+    <div class="grp">
+      <span class="lbl">主题</span>
+      <button class="tbtn" data-theme-btn="light" onclick="setTheme('light')">浅色</button>
+      <button class="tbtn" data-theme-btn="dark" onclick="setTheme('dark')">深色</button>
+      <button class="tbtn" data-theme-btn="system" onclick="setTheme('system')">跟随系统</button>
+    </div>
+    <div class="grp">
+      <span class="lbl">屏幕</span>
+      <button class="tbtn active" data-screen="home" onclick="setScreen('home')">主页</button>
+      <button class="tbtn" data-screen="settings" onclick="setScreen('settings')">设置</button>
+      <button class="tbtn" data-screen="about" onclick="setScreen('about')">关于/诊断</button>
+      <button class="tbtn" data-screen="model" onclick="setScreen('model')">模型管理</button>
+      <button class="tbtn" data-screen="sessions" onclick="setScreen('sessions')">会话列表</button>
+    </div>
+    <div class="grp">
+      <button class="tbtn" onclick="showMic()">▶ 演示语音权限弹窗</button>
+    </div>
+  </div>
+
+  <div class="device" id="device">
+    <!-- 顶栏（所有屏幕共用） -->
+    <div class="topbar">
+      <div class="ic" title="会话" onclick="setScreen('sessions')">💬</div>
+      <div class="ic" title="设置" onclick="setScreen('settings')">☰</div>
+      <div class="spacer"></div>
+      <div class="call-status" id="callStatus" style="display:none">聆听中…</div>
+      <div class="ic" title="扬声器" id="spk">🔊</div>
+      <div class="ic" title="语音通话" id="phone" onclick="showMic()">📞</div>
+    </div>
+
+    <!-- 主页 -->
+    <div id="screen-home">
+      <div class="row">
+        <div class="left">
+          <div class="chat">
+            <div class="bubble opening">你好呀，我是若澜，很高兴遇见你~</div>
+            <div class="bubble assistant">
+              当然可以！下面是一个简单的 <strong>Flutter 示例</strong>：<br/>
+              <pre><code>void main() => runApp(MyApp());</code></pre>
+              要点：
+              <ul><li>用 <code>MaterialApp</code> 作为根</li><li>页面间用 <code>Navigator</code> 跳转</li></ul>
+              需要我再解释哪一部分吗？
+            </div>
+            <div class="bubble user">这个例子能再详细点吗？</div>
+            <div class="bubble assistant">好的，我来展开说明路由与状态管理的关系…</div>
+          </div>
+          <div class="suggest">
+            <div class="chip">讲讲状态管理</div>
+            <div class="chip">给个列表示例</div>
+            <div class="chip">谢谢，明白了</div>
+          </div>
+          <div class="inputbar">
+            <div class="ic" title="语音输入">🎤</div>
+            <input placeholder="输入消息，或点麦克风语音对话…" />
+            <div class="send">➤</div>
+          </div>
+        </div>
+        <div class="right">
+          <div class="avatar-head">
+            <div class="avatar-img">🧝‍♀️</div>
+            <div class="avatar-name">若澜</div>
+            <div class="avatar-intro">温柔耐心的中文 AI 伴侣，喜欢陪你聊天、读书与解惑。</div>
+          </div>
+          <div class="char-img">人物形象（竖版 9:16）</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 设置 -->
+    <div id="screen-settings" class="hidden">
+      <div class="role-bar">
+        <div class="ttl">角色（点击切换 · 长按删除）</div>
+        <div class="role-chips">
+          <div class="role-chip active">若澜</div>
+          <div class="role-chip">小助手</div>
+          <div class="role-add">＋</div>
+        </div>
+      </div>
+      <div class="sec">
+        <h3>外观</h3>
+        <div class="seg">
+          <div class="on">跟随系统</div><div>浅色</div><div>深色</div>
+        </div>
+      </div>
+      <div class="list-entry" onclick="setScreen('about')">
+        <span class="ic2">ℹ️</span>
+        <div><div class="t">关于与诊断</div><div class="s">版本、运行模式、模型与推理参数</div></div>
+        <span class="chev">›</span>
+      </div>
+      <div class="sec">
+        <h3>运行模式</h3>
+        <div class="seg"><div class="on">本地推理</div><div>远程 API</div></div>
+      </div>
+      <div class="sec">
+        <h3>形象设置</h3>
+        <div style="display:flex; gap:24px;">
+          <div style="text-align:center"><div class="avatar-img" style="width:80px;height:80px;font-size:30px">＋</div><div style="font-size:12px;color:var(--on-surface-muted);margin-top:6px">头像（正方形）</div></div>
+          <div style="text-align:center"><div class="avatar-img" style="width:80px;height:80px;font-size:30px">＋</div><div style="font-size:12px;color:var(--on-surface-muted);margin-top:6px">形象（竖版）</div></div>
+        </div>
+      </div>
+      <div class="sec">
+        <h3>智能体名称 / 设定描述</h3>
+        <div class="field"><label>名称</label><input class="box" value="若澜" /></div>
+        <div class="field"><label>设定描述</label><input class="box" value="温柔耐心的中文 AI 伴侣…" /></div>
+      </div>
+      <div class="sec">
+        <h3>推理参数（重启后 ctx/线程 生效）</h3>
+        <div class="field"><label>上下文长度 (ctxSize)</label><input class="box" value="4096" /></div>
+        <div class="field"><label>单次最大生成 (maxTokens)</label><input class="box" value="1024" /></div>
+        <div class="slider-row"><span>温度 0.70</span></div>
+        <div class="slider-row"><span>Top-P 0.90</span></div>
+      </div>
+      <div class="list-entry" onclick="setScreen('model')">
+        <span class="ic2">🧠</span>
+        <div><div class="t">模型管理</div><div class="s">切换 / 查看本地 GGUF，切换后热重载</div></div>
+        <span class="chev">›</span>
+      </div>
+      <div class="save-btn">保存设置</div>
+    </div>
+
+    <!-- 关于与诊断 -->
+    <div id="screen-about" class="hidden">
+      <div class="about-hero">
+        <div class="about-logo">✨</div>
+        <div style="font-size:18px;font-weight:600;color:var(--on-surface-strong)">若澜 · AI 智能伴侣</div>
+        <div style="font-size:13px;color:var(--on-surface-muted)">版本 1.0.0 (build 1)</div>
+      </div>
+      <div class="gtitle">运行模式</div>
+      <div class="about-card"><span class="ic2">☁️</span><div class="l">当前模式</div><div class="v">本地推理</div></div>
+      <div class="about-card"><span class="ic2">🏷️</span><div class="l">默认模型标识</div><div class="v">deepseek-r1-distill-qwen-7b</div></div>
+      <div class="gtitle">当前模型</div>
+      <div class="about-card"><span class="ic2">🧠</span><div class="l">DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf</div><div class="v">Q4_K_M · 7B<br/>4.37 GB</div></div>
+      <div class="gtitle">推理参数</div>
+      <div class="about-card"><div class="l">上下文长度 / 最大生成 / 线程</div><div class="v">4096 / 1024 / 4</div></div>
+      <div class="about-card"><div class="l">温度 / Top-P</div><div class="v">0.70 / 0.90</div></div>
+      <div class="gtitle">外观主题</div>
+      <div class="about-card"><span class="ic2">🌓</span><div class="l">主题模式</div><div class="v">跟随系统</div></div>
+      <div class="gtitle">诊断提示</div>
+      <div class="info-card">若对话无响应：检查模型是否已拷贝到模型目录、设备剩余存储与内存是否充足。<br/>若语音识别无效：确认已授予麦克风权限，且设备已安装离线语音识别服务。<br/>远程模式异常：核对 Base URL 与密钥（密钥仅存于系统密钥库）。</div>
+    </div>
+
+    <!-- 模型管理 -->
+    <div id="screen-model" class="hidden">
+      <div style="padding:16px 20px;color:var(--on-surface-muted);font-size:13px">
+        选择本地模型文件（.gguf）切换，切换后即时热重载。模型目录：files/models 或 /sdcard/models
+      </div>
+      <div class="about-card" style="margin:0 20px 10px">
+        <span class="ic2">✅</span>
+        <div class="l"><strong>DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf</strong><br/>
+          <span style="font-size:12px;color:var(--on-surface-muted)">Q4_K_M · 7B · 4.37 GB</span></div>
+        <div class="v" style="color:var(--primary-fg)">使用中</div>
+      </div>
+      <div class="about-card" style="margin:0 20px 10px">
+        <span class="ic2">📄</span>
+        <div class="l">Qwen2.5-3B-Instruct-Q5_K_M.gguf<br/>
+          <span style="font-size:12px;color:var(--on-surface-muted)">Q5_K_M · 3B · 2.10 GB</span></div>
+        <div class="v">点击切换</div>
+      </div>
+      <div class="about-card" style="margin:0 20px 10px">
+        <span class="ic2">📄</span>
+        <div class="l">Llama-3.2-1B-Instruct-Q4_0.gguf<br/>
+          <span style="font-size:12px;color:var(--on-surface-muted)">Q4_0 · 1B · 0.78 GB</span></div>
+        <div class="v">点击切换</div>
+      </div>
+    </div>
+
+    <!-- 会话列表（底部抽屉示意） -->
+    <div id="screen-sessions" class="hidden">
+      <div class="sheet">
+        <div class="head">会话列表 <span style="margin-left:auto;font-size:13px;color:var(--primary-fg);cursor:pointer">＋ 新建</span></div>
+        <div class="session-item active"><span class="dot"></span><div><div class="nm">当前会话</div><div class="meta">今天 14:20 · 12 条</div></div><span class="del">🗑️</span></div>
+        <div class="session-item"><span class="dot"></span><div><div class="nm">读书笔记整理</div><div class="meta">昨天 · 34 条</div></div><span class="del">🗑️</span></div>
+        <div class="session-item"><span class="dot"></span><div><div class="nm">旅行计划</div><div class="meta">7/10 · 8 条</div></div><span class="del">🗑️</span></div>
+      </div>
+    </div>
+
+    <!-- 语音权限弹窗（覆盖层） -->
+    <div class="modal-mask hidden" id="micModal">
+      <div class="modal">
+        <h3><span>🎤</span> 语音通话需要麦克风</h3>
+        <p>若澜的语音通话会使用设备麦克风进行语音识别。</p>
+        <p>• 首次进入时系统会请求麦克风权限，请选择「允许」。</p>
+        <p>• 若之前拒绝了，请到系统「设置 → 应用 → 若澜 → 权限」中开启麦克风。</p>
+        <p class="warn">⚠️ 当前设备语音识别暂不可用（可能未安装离线语音服务或未授权）。</p>
+        <div class="acts">
+          <div class="b cancel" onclick="hideMic()">取消</div>
+          <div class="b ok" onclick="hideMic()">继续通话</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hint">
+    说明：本预览为按真实 <code>RuolanColors</code> 主题（浅/暗双套）与现有布局（横屏双栏）还原的高保真原型，
+    用于界面评审。原生推理 / 语音识别 / TTS 等需在真机或模拟器运行，预览不含运行时逻辑。
+    可切换主题与屏幕，点击右上「▶ 演示语音权限弹窗」查看新做的 REQ-VOC-003 引导。
+  </div>
+</div>
+
+<script>
+  function setTheme(t){
+    const root = document.documentElement;
+    if(t==='system'){ root.removeAttribute('data-theme'); }
+    else { root.setAttribute('data-theme', t); }
+    document.querySelectorAll('[data-theme-btn]').forEach(b=>
+      b.classList.toggle('active', b.getAttribute('data-theme-btn')===t));
+  }
+  function setScreen(s){
+    ['home','settings','about','model','sessions'].forEach(id=>{
+      document.getElementById('screen-'+id).classList.toggle('hidden', id!==s);
+    });
+    document.querySelectorAll('[data-screen]').forEach(b=>
+      b.classList.toggle('active', b.getAttribute('data-screen')===s));
+  }
+  function showMic(){ document.getElementById('micModal').classList.remove('hidden'); }
+  function hideMic(){ document.getElementById('micModal').classList.add('hidden'); }
+  // 默认浅色
+  setTheme('light');
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@ import '../../theme/ruolan_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/voice_provider.dart';
+import '../../services/stt_service.dart';
 import '../../screens/settings_screen.dart';
 import 'session_panel.dart';
 
@@ -57,7 +58,7 @@ class TopBar extends StatelessWidget {
               if (voice.isInCallMode) {
                 voice.exitCallMode();
               } else {
-                voice.enterCallMode();
+                _confirmEnterCall(context, voice);
               }
             },
             child: Consumer<VoiceProvider>(
@@ -100,5 +101,55 @@ class TopBar extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// 进入语音通话前的麦克风权限说明（REQ-VOC-003）。
+  /// 说明麦克风用途与系统授权路径；若设备语音识别不可用额外警示。
+  /// 每次发起通话都会弹出，满足「首次说明」与「拒绝后再次触发」。
+  Future<void> _confirmEnterCall(BuildContext context, VoiceProvider voice) async {
+    final colors = RuolanColors.of(context);
+    final available = await SttService().isAvailable();
+    if (!context.mounted) return;
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.mic, color: colors.primaryFg),
+            const SizedBox(width: 8),
+            Text('语音通话需要麦克风', style: TextStyle(color: colors.onSurfaceStrong)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('若澜的语音通话会使用设备麦克风进行语音识别。',
+                style: TextStyle(color: colors.onSurface)),
+            const SizedBox(height: 10),
+            Text('• 首次进入时系统会请求麦克风权限，请选择「允许」。',
+                style: TextStyle(color: colors.onSurface)),
+            Text('• 若之前拒绝了，请到系统「设置 → 应用 → 若澜 → 权限」中开启麦克风。',
+                style: TextStyle(color: colors.onSurface)),
+            if (!available) ...[
+              const SizedBox(height: 12),
+              Text('⚠️ 当前设备语音识别暂不可用（可能未安装离线语音服务或未授权）。',
+                  style: TextStyle(color: colors.errorText)),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('取消', style: TextStyle(color: colors.onSurfaceMuted)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text('继续通话', style: TextStyle(color: colors.primaryFg)),
+          ),
+        ],
+      ),
+    );
+    if (proceed == true) voice.enterCallMode();
   }
 }
